@@ -1,0 +1,123 @@
+<div class="register-container">
+  <h2>Create Account</h2>
+
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+    <br>
+    Redirecting to login...
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <form (ngSubmit)="onSubmit()" #registerForm="ngForm" *ngIf="!successMessage">
+    <div class="form-group">
+      <label for="first_name">First Name *</label>
+      <input
+        type="text"
+        id="first_name"
+        name="first_name"
+        [(ngModel)]="registerData.first_name"
+        required
+        minlength="2"
+        #firstName="ngModel"
+        [class.is-invalid]="firstName.invalid && firstName.touched"
+      >
+      <div *ngIf="firstName.invalid && firstName.touched" class="invalid-feedback">
+        First name is required (min 2 characters)
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="last_name">Last Name *</label>
+      <input
+        type="text"
+        id="last_name"
+        name="last_name"
+        [(ngModel)]="registerData.last_name"
+        required
+        minlength="2"
+        #lastName="ngModel"
+        [class.is-invalid]="lastName.invalid && lastName.touched"
+      >
+      <div *ngIf="lastName.invalid && lastName.touched" class="invalid-feedback">
+        Last name is required (min 2 characters)
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="surname">Surname (Optional)</label>
+      <input
+        type="text"
+        id="surname"
+        name="surname"
+        [(ngModel)]="registerData.surname"
+        #surname="ngModel"
+      >
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email *</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        [(ngModel)]="registerData.email"
+        required
+        email
+        #email="ngModel"
+        [class.is-invalid]="email.invalid && email.touched"
+      >
+      <div *ngIf="email.invalid && email.touched" class="invalid-feedback">
+        Valid email is required
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password *</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        [(ngModel)]="registerData.password"
+        required
+        minlength="6"
+        #password="ngModel"
+        [class.is-invalid]="password.invalid && password.touched"
+      >
+      <div *ngIf="password.invalid && password.touched" class="invalid-feedback">
+        Password must be at least 6 characters
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="confirmPassword">Confirm Password *</label>
+      <input
+        type="password"
+        id="confirmPassword"
+        name="confirmPassword"
+        [(ngModel)]="confirmPassword"
+        required
+        #confirmPwd="ngModel"
+        [class.is-invalid]="(confirmPwd.touched && !passwordsMatch())"
+      >
+      <div *ngIf="confirmPwd.touched && !passwordsMatch()" class="invalid-feedback">
+        Passwords do not match
+      </div>
+    </div>
+
+    <button
+      type="submit"
+      [disabled]="registerForm.invalid || !passwordsMatch() || isLoading"
+      class="btn-primary"
+    >
+      {{ isLoading ? 'Creating account...' : 'Register' }}
+    </button>
+  </form>
+
+  <p class="login-link">
+    Already have an account?
+    <a routerLink="/login">Login here</a>
+  </p>
+</div>

@@ -17,3 +17,12 @@ export interface AuthResponse {
   email: string;
   role: string;
 }
+
+export interface Test {
+  id_test: number;
+  title: string;
+  description: string;
+  duration_minutes: number;
+  created_by: number;
+  created_at: Date;
+}

@@ -6,6 +6,7 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Entity
@@ -32,4 +33,7 @@ public class Test {
     @JoinColumn(name = "created_by")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "password", "tests"})
     private Person createdBy;
+
+    @OneToMany(mappedBy = "test", fetch = FetchType.LAZY)
+    private List<Question> questions;
 }

@@ -26,3 +26,10 @@ export interface Test {
   created_by: number;
   created_at: Date;
 }
+
+export interface Question {
+  id_test: number;
+  question_text: string;
+  type_question: string;
+  points: number;
+}

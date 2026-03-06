@@ -1,5 +1,25 @@
-<div class="home-container">
-  <h1>Welcome to Home Page!</h1>
-  <p>You are successfully logged in.</p>
-  <button (click)="logout()">Logout</button>
-</div>
+<button (click)="logout()">Выйти</button>
+<hr>
+
+<h2>Список тестов</h2>
+
+<table class="tests-table">
+  <thead>
+  <tr>
+    <th>Название теста</th>
+    <th>Описание</th>
+    <th>Длительность (мин)</th>
+    <th>Действие</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let test of tests">
+    <td>{{ test.title }}</td>
+    <td>{{ test.description }}</td>
+    <td>{{ test.duration_minutes }}</td>
+    <td>
+      <a [routerLink]="['/test-start', test.id_test]" class="start-link">Начать</a>
+    </td>
+  </tr>
+  </tbody>
+</table>

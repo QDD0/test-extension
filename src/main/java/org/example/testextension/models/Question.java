@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.example.testextension.enums.TypeQuestion;
 
+import java.util.List;
+
 @Data
 @Entity
 @Table(name = "question")
@@ -27,4 +29,7 @@ public class Question {
     @JoinColumn(name = "id_test")
     @JsonIgnore
     private Test test;
+
+    @OneToMany(mappedBy = "questions", fetch = FetchType.EAGER)
+    private List<Answer> answers;
 }

@@ -4,6 +4,25 @@
 
   <p><b>{{ q.question_text }}</b></p>
 
-  <p>Баллы: {{ q.points }}</p>
+  <div *ngIf="q.type_question === 'SINGLE'">
+    <div *ngFor="let a of q.answers">
+      <label>
+        <input type="radio" [name]="'question' + q.id_question">
+        {{ a.answer_text }}
+      </label>
+    </div>
+  </div>
 
+  <div *ngIf="q.type_question === 'MULTIPLE'">
+    <div *ngFor="let a of q.answers">
+      <label>
+        <input type="checkbox">
+        {{ a.answer_text }}
+      </label>
+    </div>
+  </div>
+
+  <div *ngIf="q.type_question === 'TEXT'">
+    <input type="text" placeholder="Введите ответ">
+  </div>
 </div>

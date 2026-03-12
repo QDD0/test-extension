@@ -1,8 +1,8 @@
-import {Component, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {Router, RouterLink} from '@angular/router';
-import {TestService} from '../../services/test.service';
-import {Test} from '../../models/auth.model';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
+import { TestService } from '../../services/test.service';
+import { Test, Question } from '../../models/auth.model';
 
 @Component({
   selector: 'app-home',
@@ -14,12 +14,12 @@ import {Test} from '../../models/auth.model';
 export class HomeComponent implements OnInit {
 
   tests: Test[] = [];
+  // questions: Question[] = [];
 
   constructor(
     private router: Router,
     private testService: TestService
-  ) {
-  }
+  ) { }
 
   ngOnInit(): void {
     this.loadTests();
@@ -32,6 +32,17 @@ export class HomeComponent implements OnInit {
       },
       error: (err) => {
         console.error('Ошибка загрузки тестов', err);
+      }
+    });
+  }
+
+  startTest(testId: number) {
+    this.testService.startTest(testId).subscribe({
+      next: () => {
+        this.router.navigate(['/test-start', testId]);
+      },
+      error: (err) => {
+        console.error('Не удалось начать тест', err);
       }
     });
   }

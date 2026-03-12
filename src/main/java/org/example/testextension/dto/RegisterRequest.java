@@ -7,6 +7,8 @@ public class RegisterRequest {
     private String last_name;
     private String surname;
 
+    public RegisterRequest() {}
+
     public RegisterRequest(String email, String password, String first_name, String last_name, String surname) {
         this.email = email;
         this.password = password;

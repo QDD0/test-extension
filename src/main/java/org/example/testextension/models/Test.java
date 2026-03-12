@@ -2,7 +2,9 @@ package org.example.testextension.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -10,6 +12,8 @@ import java.util.List;
 
 @Data
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "test")
 public class Test {
     @Id
@@ -36,4 +40,11 @@ public class Test {
 
     @OneToMany(mappedBy = "test", fetch = FetchType.LAZY)
     private List<Question> questions;
+
+    @OneToMany(mappedBy = "testAttempt", fetch = FetchType.EAGER)
+    private List<TestAttempt> attemptList;
+
+    public Test(Long id_test) {
+        this.id_test = id_test;
+    }
 }

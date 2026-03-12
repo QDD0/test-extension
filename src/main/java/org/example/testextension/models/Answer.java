@@ -2,10 +2,16 @@ package org.example.testextension.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "answer")
 public class Answer {
     @Id
@@ -22,4 +28,11 @@ public class Answer {
     @JoinColumn(name = "id_question")
     @JsonIgnore
     private Question questions;
+
+    @OneToMany(mappedBy = "mainAnswer", fetch = FetchType.EAGER)
+    private List<AttemptAnswer> attemptAnswers;
+
+    public Answer(Long id_answer) {
+        this.id_answer = id_answer;
+    }
 }

@@ -45,7 +45,9 @@ public class Person {
     private LocalDateTime created_at;
 
     @OneToMany(mappedBy = "createdBy", fetch = FetchType.LAZY)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @JsonIgnore
     private List<Test> tests;
+
+    @OneToMany(mappedBy = "personAttempt", fetch = FetchType.EAGER)
+    private List<TestAttempt> testAttempts;
 }

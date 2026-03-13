@@ -18,6 +18,6 @@ public class QuestionService {
     }
 
     public List<Question> getQuestionsByTest(Long id_test) {
-        return questionRepository.findByTestIdTest(id_test);
+        return questionRepository.findQuestionsWithAnswers(id_test);
     }
 }

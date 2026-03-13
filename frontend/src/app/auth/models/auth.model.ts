@@ -27,9 +27,39 @@ export interface Test {
   created_at: Date;
 }
 
+export interface Answer {
+  id_answer: number;
+  answer_text: string;
+  is_correct: boolean;
+}
+
+export type TypeQuestion = 'SINGLE' | 'MULTIPLE' | 'TEXT';
+
 export interface Question {
-  id_test: number;
+  id_question: number;
   question_text: string;
-  type_question: string;
+  type_question: TypeQuestion;
   points: number;
+  answers: Answer[];
+}
+
+export type TypeStatus = 'IN_PROGRESS' | 'COMPLETED' | 'BLOCKED';
+
+export interface TestAttempt {
+  id_attempt?: number;
+  id_person: number;
+  id_test: number;
+  start_time?: Date;
+  end_time?: Date;
+  score?: number;
+  status?: TypeStatus;
+}
+
+export interface AttemptAnswer {
+  id_attempt_answer?: number;
+  id_attempt: number;
+  id_question: number;
+  id_answer?: number;
+  text_answer?: string;
+  answered_at?: Date;
 }

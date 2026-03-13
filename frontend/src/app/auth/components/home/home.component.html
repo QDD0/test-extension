@@ -1,8 +1,5 @@
 <button (click)="logout()">Выйти</button>
 <hr>
-
-<h2>Список тестов</h2>
-
 <table class="tests-table">
   <thead>
   <tr>
@@ -18,7 +15,7 @@
     <td>{{ test.description }}</td>
     <td>{{ test.duration_minutes }}</td>
     <td>
-      <a [routerLink]="['/test-start', test.id_test]" class="start-link">Начать</a>
+      <button (click)="startTest(test.id_test)">Начать</button>
     </td>
   </tr>
   </tbody>

@@ -1,48 +1,56 @@
-<div class="container">
-  <h2 class="test-title">Тест</h2>
-  <div class="timer" [style.color]="remainingTime < 60 ? 'red' : 'black'">
-    Осталось времени: <b>{{ formattedTime }}</b>
-  </div>
-  <a href="/tests-page" class="back-link">Вернуться назад</a>
-  <hr class="divider">
+<div class="test-layout">
+  <div class="container">
+    <h2 class="test-title">Тест</h2>
 
-  <div *ngFor="let q of questions; let i = index" class="question-block">
-    <p class="question-text">
-      <b>Вопрос {{ i + 1 }}:</b> {{ q.question_text }}
-    </p>
+    <div *ngFor="let q of questions; let i = index" class="question-block">
+      <p class="question-text">
+        <b>Вопрос {{ i + 1 }}:</b> {{ q.question_text }}
+      </p>
 
-    <div *ngIf="q.type_question === 'SINGLE'" class="answers-container single-choice">
-      <div *ngFor="let a of q.answers" class="answer-option">
-        <label class="answer-label">
-          <input type="radio"
-                 [name]="'question' + q.id_question"
-                 (change)="userAnswers[q.id_question] = a.id_answer"
-                 class="radio-input">
-          <span class="answer-text">{{ a.answer_text }}</span>
-        </label>
+      <div *ngIf="q.type_question === 'SINGLE'" class="answers-container">
+        <div *ngFor="let a of q.answers" class="answer-option">
+          <label>
+            <input type="radio"
+                   [name]="'question' + q.id_question"
+                   (change)="userAnswers[q.id_question] = a.id_answer">
+            {{ a.answer_text }}
+          </label>
+        </div>
       </div>
-    </div>
 
-    <div *ngIf="q.type_question === 'MULTIPLE'" class="answers-container multiple-choice">
-      <div *ngFor="let a of q.answers" class="answer-option">
-        <label class="answer-label">
-          <input type="checkbox"
-                 class="checkbox-input"
-                 (change)="toggleMultiple(q.id_question, a.id_answer, $event)">
-        </label>
-        <span class="answer-text">{{ a.answer_text }}</span>
+      <div *ngIf="q.type_question === 'MULTIPLE'" class="answers-container">
+        <div *ngFor="let a of q.answers" class="answer-option">
+          <label>
+            <input type="checkbox"
+                   (change)="toggleMultiple(q.id_question, a.id_answer, $event)">
+            {{ a.answer_text }}
+          </label>
+        </div>
       </div>
-    </div>
 
-    <div *ngIf="q.type_question === 'TEXT'" class="answers-container text-answer">
-      <input type="text"
-             class="text-input"
-             placeholder="Введите ответ"
-             (input)="userAnswers[q.id_question] = $any($event.target).value">
+      <div *ngIf="q.type_question === 'TEXT'">
+        <input type="text"
+               placeholder="Введите ответ"
+               (input)="userAnswers[q.id_question] = $any($event.target).value">
+      </div>
     </div>
   </div>
 
-  <button class="submit-btn" (click)="finishTest()">
-    Завершить тест
-  </button>
+  <div class="sidebar">
+    <div class="timer">
+      ⏱ Осталось: <b>{{ formattedTime }}</b>
+    </div>
+
+    <div class="question-count">
+      Вопросов: {{ questions.length }}
+    </div>
+
+    <button class="submit-btn" (click)="finishTest()">
+      Завершить тест
+    </button>
+
+    <a href="/tests-page" class="exit-btn">
+      Выйти
+    </a>
+  </div>
 </div>

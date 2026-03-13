@@ -1,85 +1,67 @@
-import {Component, OnInit} from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
-import {Question} from '../models/auth.model';
-import {QuestionService} from '../services/question.service';
-import {CommonModule} from '@angular/common';
-import {TestService} from '../services/test.service';
-import { Router } from '@angular/router';
-
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Question, Test } from '../models/auth.model';
+import {CommonModule, NgFor, NgIf} from '@angular/common';
+import { TestService } from '../services/test.service';
 
 @Component({
   selector: 'app-test-start',
   templateUrl: './test-start.component.html',
   styleUrls: ['./test-start.component.css'],
-  imports: [CommonModule]
+  imports: [CommonModule, NgIf, NgFor]
 })
-export class TestStartComponent implements OnInit {
-
+export class TestStartComponent implements OnInit, OnDestroy {
   questions: Question[] = [];
   testId!: number;
-
-
+  attemptId!: number;
+  testDuration: number = 0;
   remainingTime: number = 0;
   timer: any;
+  userAnswers: any = {};
 
   constructor(
     private route: ActivatedRoute,
-    // private questionService: QuestionService,
     private testService: TestService,
     private router: Router
   ) {}
 
-  userAnswers: any = {};
+  ngOnInit(): void {
+    this.testId = Number(this.route.snapshot.paramMap.get('id'));
+    this.startAttempt();
+    window.addEventListener('beforeunload', this.saveProgress.bind(this));
+  }
 
-  finishTest() {
+  ngOnDestroy(): void {
     clearInterval(this.timer);
+    window.removeEventListener('beforeunload', this.saveProgress.bind(this));
+  }
 
-    const result = {
-      testId: this.testId,
-      answers: this.userAnswers
-    };
-
-    console.log(result);
-
-    this.testService.submitTest(result).subscribe({
-      next: (res: any) => {
-        console.log("Ответы сохранены", res);
-        this.router.navigate(['/tests-page']);
+  startAttempt() {
+    this.testService.startTest(this.testId).subscribe({
+      next: (attempt: any) => {
+        this.attemptId = attempt.id;
+        this.loadTestInfo();
       },
-      error: (err : any) => {
-        console.error("Ошибка сохранения", err);
-      }
+      error: (err) => console.error('Ошибка старта попытки', err)
     });
   }
 
-  get formattedTime(): string {
-
-    const minutes = Math.floor(this.remainingTime / 60);
-    const seconds = this.remainingTime % 60;
-
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-  }
-
-  startTimer() {
-
-    this.timer = setInterval(() => {
-
-      if (this.remainingTime > 0) {
-        this.remainingTime--;
-      } else {
-        clearInterval(this.timer);
-        this.finishTest();
+  loadTestInfo() {
+    this.testService.getTestById(this.testId).subscribe({
+      next: (test: Test) => {
+        this.testDuration = test.duration_minutes || 30;
+        this.remainingTime = this.testDuration * 60;
+        this.loadQuestions();
+        this.startTimer();
+      },
+      error: (err: any) => {
+        console.error('Ошибка загрузки информации о тесте', err);
+        this.testDuration = 30;
+        this.remainingTime = 30 * 60;
+        this.loadQuestions();
+        this.startTimer();
       }
-
-    }, 1000);
-  }
-
-  ngOnInit(): void {
-    this.testId = Number(this.route.snapshot.paramMap.get('id'));
-    this.loadQuestions();
-
-    this.remainingTime = 30 * 60;
-    this.startTimer();
+    });
   }
 
   loadQuestions() {
@@ -94,8 +76,55 @@ export class TestStartComponent implements OnInit {
     });
   }
 
-  toggleMultiple(questionId: number, answerId: number, event: any) {
+  startTimer() {
+    this.timer = setInterval(() => {
+      if (this.remainingTime > 0) {
+        this.remainingTime--;
+      } else {
+        clearInterval(this.timer);
+        this.finishTest();
+      }
+    }, 1000);
+  }
 
+  get formattedTime(): string {
+    const minutes = Math.floor(this.remainingTime / 60);
+    const seconds = this.remainingTime % 60;
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  }
+
+  saveProgress(event?: any) {
+    if (!this.attemptId) return;
+
+    this.testService.submitTest({
+      testId: this.testId,
+      answers: this.userAnswers
+    }).subscribe({
+      next: () => console.log('Прогресс сохранён'),
+      error: (err) => console.error('Ошибка сохранения прогресса', err)
+    });
+
+    if (event) {
+      event.returnValue = 'Вы точно хотите выйти? Прогресс будет сохранён';
+    }
+  }
+
+  finishTest() {
+    clearInterval(this.timer);
+
+    this.testService.submitTest({
+      testId: this.testId,
+      answers: this.userAnswers
+    }).subscribe({
+      next: (res: any) => {
+        console.log('Ответы сохранены', res);
+        this.router.navigate(['/tests-page']);
+      },
+      error: (err: any) => console.error('Ошибка сохранения', err)
+    });
+  }
+
+  toggleMultiple(questionId: number, answerId: number, event: any) {
     if (!this.userAnswers[questionId]) {
       this.userAnswers[questionId] = [];
     }

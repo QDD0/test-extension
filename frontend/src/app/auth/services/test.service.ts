@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {Test, Question} from '../models/auth.model';
+import {Test, Question, TestResult} from '../models/auth.model';
 
 @Injectable({
   providedIn: 'root'
@@ -38,6 +38,12 @@ export class TestService {
   }
 
   saveProgress(attemptId: number, data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/attempt/save-progress/${attemptId}`, data, { headers: this.getAuthHeaders() });
+    return this.http.post(`${this.apiUrl}/attempt/save-progress/${attemptId}`, data, {headers: this.getAuthHeaders()});
+  }
+
+  getResult(attemptId: number) {
+    return this.http.get<TestResult>(
+      `${this.apiUrl}/attempt/result/${attemptId}`, {headers: this.getAuthHeaders()}
+    );
   }
 }

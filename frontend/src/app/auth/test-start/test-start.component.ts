@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Question, Test } from '../models/auth.model';
-import {CommonModule, NgFor, NgIf} from '@angular/common';
+import { CommonModule, NgFor, NgIf } from '@angular/common';
 import { TestService } from '../services/test.service';
 
 @Component({
@@ -11,6 +11,7 @@ import { TestService } from '../services/test.service';
   imports: [CommonModule, NgIf, NgFor]
 })
 export class TestStartComponent implements OnInit, OnDestroy {
+
   questions: Question[] = [];
   testId!: number;
   attemptId!: number;
@@ -18,6 +19,8 @@ export class TestStartComponent implements OnInit, OnDestroy {
   remainingTime: number = 0;
   timer: any;
   userAnswers: any = {};
+
+  private boundSave = this.saveProgress.bind(this);
 
   constructor(
     private route: ActivatedRoute,
@@ -28,21 +31,24 @@ export class TestStartComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.testId = Number(this.route.snapshot.paramMap.get('id'));
     this.startAttempt();
-    window.addEventListener('beforeunload', this.saveProgress.bind(this));
+    window.addEventListener('beforeunload', this.boundSave);
   }
 
   ngOnDestroy(): void {
     clearInterval(this.timer);
-    window.removeEventListener('beforeunload', this.saveProgress.bind(this));
+    window.removeEventListener('beforeunload', this.boundSave);
   }
 
   startAttempt() {
     this.testService.startTest(this.testId).subscribe({
       next: (attempt: any) => {
-        this.attemptId = attempt.id;
+        this.attemptId = attempt.id_attempt;
+        console.log('Attempt started with ID:', this.attemptId);
         this.loadTestInfo();
       },
-      error: (err) => console.error('Ошибка старта попытки', err)
+      error: (err) => {
+        console.error('Ошибка старта попытки', err);
+      }
     });
   }
 
@@ -54,8 +60,7 @@ export class TestStartComponent implements OnInit, OnDestroy {
         this.loadQuestions();
         this.startTimer();
       },
-      error: (err: any) => {
-        console.error('Ошибка загрузки информации о тесте', err);
+      error: () => {
         this.testDuration = 30;
         this.remainingTime = 30 * 60;
         this.loadQuestions();
@@ -68,10 +73,9 @@ export class TestStartComponent implements OnInit, OnDestroy {
     this.testService.getQuestions(this.testId).subscribe({
       next: (data: Question[]) => {
         this.questions = data;
-        console.log('Вопросы загружены:', data);
       },
-      error: (err: any) => {
-        console.error('Ошибка загрузки вопросов', err);
+      error: (err) => {
+        console.error('Error loading questions:', err);
       }
     });
   }
@@ -96,31 +100,42 @@ export class TestStartComponent implements OnInit, OnDestroy {
   saveProgress(event?: any) {
     if (!this.attemptId) return;
 
-    this.testService.submitTest({
-      testId: this.testId,
-      answers: this.userAnswers
-    }).subscribe({
-      next: () => console.log('Прогресс сохранён'),
-      error: (err) => console.error('Ошибка сохранения прогресса', err)
-    });
+    this.testService.saveProgress(this.attemptId, this.userAnswers)
+      .subscribe({
+        next: () => console.log('Progress saved'),
+        error: (err) => console.error('Error saving progress:', err)
+      });
 
     if (event) {
-      event.returnValue = 'Вы точно хотите выйти? Прогресс будет сохранён';
+      event.returnValue = 'Вы точно хотите выйти?';
     }
   }
 
   finishTest() {
     clearInterval(this.timer);
 
+    if (!this.attemptId) {
+      console.error('No attempt ID found');
+      return;
+    }
+
+    console.log('Finishing test with attemptId:', this.attemptId);
+    console.log('User answers:', this.userAnswers);
+
     this.testService.submitTest({
       testId: this.testId,
       answers: this.userAnswers
     }).subscribe({
       next: (res: any) => {
-        console.log('Ответы сохранены', res);
-        this.router.navigate(['/tests-page']);
+        console.log('Test submitted successfully', res);
+        this.router.navigate(['/result', this.attemptId]);
       },
-      error: (err: any) => console.error('Ошибка сохранения', err)
+      error: (err) => {
+        console.error('Error submitting test:', err);
+        if (this.attemptId) {
+          this.router.navigate(['/result', this.attemptId]);
+        }
+      }
     });
   }
 
@@ -135,5 +150,7 @@ export class TestStartComponent implements OnInit, OnDestroy {
       this.userAnswers[questionId] =
         this.userAnswers[questionId].filter((id: number) => id !== answerId);
     }
+
+    console.log('Updated answers:', this.userAnswers);
   }
 }

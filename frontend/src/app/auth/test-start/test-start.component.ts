@@ -1,8 +1,8 @@
-import {Component, OnInit, OnDestroy} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Question, Test} from '../models/auth.model';
-import {CommonModule, NgFor, NgIf} from '@angular/common';
-import {TestService} from '../services/test.service';
+import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
+import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
+import { Question, Test } from '../models/auth.model';
+import { CommonModule, NgFor, NgIf } from '@angular/common';
+import { TestService } from '../services/test.service';
 
 @Component({
   selector: 'app-test-start',
@@ -11,8 +11,8 @@ import {TestService} from '../services/test.service';
   imports: [CommonModule, NgIf, NgFor]
 })
 export class TestStartComponent implements OnInit, OnDestroy {
-  tabSwitchCount = 0;
   isFinished = false;
+  tabSwitchCount = 0;
 
   questions: Question[] = [];
   testId!: number;
@@ -23,88 +23,78 @@ export class TestStartComponent implements OnInit, OnDestroy {
   userAnswers: any = {};
 
   private boundSave = this.saveProgress.bind(this);
+  private boundHandleViolation = this.handleViolation.bind(this);
 
   constructor(
     private route: ActivatedRoute,
     private testService: TestService,
-    private router: Router
-  ) {
+    private router: Router,
+    private ngZone: NgZone
+  ) {}
+
+  ngOnInit(): void {
+    console.log('TestStartComponent initialized');
+
+    this.testId = Number(this.route.snapshot.paramMap.get('id'));
+    this.startAttempt();
+
+    window.addEventListener('beforeunload', this.boundSave);
+    window.addEventListener('testViolation', this.boundHandleViolation);
+
+    this.notifyExtensionReady();
+
+    this.checkExtensionStatus();
   }
 
-  handleTabChange = () => {
-    if (document.hidden) {
-      this.tabSwitchCount++;
-
-      console.warn('Переключение вкладки:', this.tabSwitchCount);
-
-      if (this.tabSwitchCount === 1) {
-        alert('Не покидайте вкладку! При повторном нарушении тест будет завершен.');
-      } else if (this.tabSwitchCount >= 2) {
-        alert('Вы повторно покинули вкладку. Тест завершен.');
-        this.finishTest();
-      }
-    }
+  ngOnDestroy(): void {
+    console.log('TestStartComponent destroyed');
+    clearInterval(this.timer);
+    window.removeEventListener('beforeunload', this.boundSave);
+    window.removeEventListener('testViolation', this.boundHandleViolation);
   }
 
-  detectDevToolsKeys = (event: KeyboardEvent) => {
-    if (
-      event.key === 'F12' ||
-      (event.ctrlKey && event.shiftKey && event.key === 'I') ||
-      (event.ctrlKey && event.shiftKey && event.key === 'J') ||
-      (event.ctrlKey && event.key === 'U')
-    ) {
-      event.preventDefault();
-
-      alert('Открытие DevTools запрещено! Тест будет завершен.');
-      this.finishTest();
-    }
+  notifyExtensionReady() {
+    window.dispatchEvent(new CustomEvent('angularTestReady', {
+      detail: { testId: this.testId, timestamp: Date.now() }
+    }));
   }
 
-  disableCopy = (event: ClipboardEvent) => {
-    event.preventDefault();
-  }
-
-  disableSelect = () => {
-    return false;
-  }
-
-  checkDevTools() {
-    const threshold = 160;
-
-    setInterval(() => {
-      const widthDiff = window.outerWidth - window.innerWidth;
-      const heightDiff = window.outerHeight - window.innerHeight;
-
-      if (widthDiff > threshold || heightDiff > threshold) {
-        alert('DevTools обнаружены! Тест завершен.');
-        this.finishTest();
+  checkExtensionStatus() {
+    setTimeout(() => {
+      const win = window as any;
+      if (win.__testProtectionAPI) {
+        console.log('Extension is loaded and ready');
+        const status = win.__testProtectionAPI.status();
+        console.log('Extension status:', status);
+      } else {
+        console.warn('Extension not detected!');
       }
     }, 1000);
   }
 
-  ngOnInit(): void {
-    this.testId = Number(this.route.snapshot.paramMap.get('id'));
-    this.startAttempt();
-    this.checkDevTools();
+  handleViolation(event: any) {
+    this.ngZone.run(() => {
+      const { reason, count } = event.detail;
+      console.log(`Violation: ${reason}`, event.detail);
 
-    window.addEventListener('beforeunload', this.boundSave);
-    document.addEventListener('visibilitychange', this.handleTabChange);
-    window.addEventListener('blur', this.handleTabChange);
-    document.addEventListener('keydown', this.detectDevToolsKeys);
-    document.addEventListener('copy', this.disableCopy);
-    document.addEventListener('cut', this.disableCopy);
-    document.addEventListener('selectstart', this.disableSelect);
-  }
+      switch(reason) {
+        case 'tabSwitchWarning':
+          this.tabSwitchCount = count || 1;
+          console.warn(`Tab switch warning #${this.tabSwitchCount}`);
+          break;
 
-  ngOnDestroy(): void {
-    clearInterval(this.timer);
-    window.removeEventListener('beforeunload', this.boundSave);
-    document.removeEventListener('visibilitychange', this.handleTabChange);
-    window.removeEventListener('blur', this.handleTabChange);
-    document.removeEventListener('keydown', this.detectDevToolsKeys);
-    document.removeEventListener('copy', this.disableCopy);
-    document.removeEventListener('cut', this.disableCopy);
-    document.removeEventListener('selectstart', this.disableSelect);
+        case 'tabSwitchViolation':
+        case 'devToolsViolation':
+        case 'devToolsDetected':
+          console.error(`Test finished due to: ${reason}`);
+          this.finishTest();
+          break;
+
+        case 'extensionReady':
+          console.log('Extension is ready and protection is active');
+          break;
+      }
+    });
   }
 
   startAttempt() {

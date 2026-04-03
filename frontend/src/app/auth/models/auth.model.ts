@@ -63,3 +63,18 @@ export interface AttemptAnswer {
   text_answer?: string;
   answered_at?: Date;
 }
+
+export interface QuestionResult {
+  questionId: number;
+  questionText: string;
+  correct: boolean;
+  userAnswer: string[];
+  correctAnswers: string[];
+}
+
+export interface TestResult {
+  score: number;
+  totalPoints: number;
+  percentage: number;
+  questions: QuestionResult[];
+}

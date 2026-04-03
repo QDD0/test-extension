@@ -1,8 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Question, Test } from '../models/auth.model';
-import { CommonModule, NgFor, NgIf } from '@angular/common';
-import { TestService } from '../services/test.service';
+import {Component, OnInit, OnDestroy} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {Question, Test} from '../models/auth.model';
+import {CommonModule, NgFor, NgIf} from '@angular/common';
+import {TestService} from '../services/test.service';
 
 @Component({
   selector: 'app-test-start',
@@ -11,6 +11,8 @@ import { TestService } from '../services/test.service';
   imports: [CommonModule, NgIf, NgFor]
 })
 export class TestStartComponent implements OnInit, OnDestroy {
+  tabSwitchCount = 0;
+  isFinished = false;
 
   questions: Question[] = [];
   testId!: number;
@@ -26,17 +28,83 @@ export class TestStartComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private testService: TestService,
     private router: Router
-  ) {}
+  ) {
+  }
+
+  handleTabChange = () => {
+    if (document.hidden) {
+      this.tabSwitchCount++;
+
+      console.warn('Переключение вкладки:', this.tabSwitchCount);
+
+      if (this.tabSwitchCount === 1) {
+        alert('Не покидайте вкладку! При повторном нарушении тест будет завершен.');
+      } else if (this.tabSwitchCount >= 2) {
+        alert('Вы повторно покинули вкладку. Тест завершен.');
+        this.finishTest();
+      }
+    }
+  }
+
+  detectDevToolsKeys = (event: KeyboardEvent) => {
+    if (
+      event.key === 'F12' ||
+      (event.ctrlKey && event.shiftKey && event.key === 'I') ||
+      (event.ctrlKey && event.shiftKey && event.key === 'J') ||
+      (event.ctrlKey && event.key === 'U')
+    ) {
+      event.preventDefault();
+
+      alert('Открытие DevTools запрещено! Тест будет завершен.');
+      this.finishTest();
+    }
+  }
+
+  disableCopy = (event: ClipboardEvent) => {
+    event.preventDefault();
+  }
+
+  disableSelect = () => {
+    return false;
+  }
+
+  checkDevTools() {
+    const threshold = 160;
+
+    setInterval(() => {
+      const widthDiff = window.outerWidth - window.innerWidth;
+      const heightDiff = window.outerHeight - window.innerHeight;
+
+      if (widthDiff > threshold || heightDiff > threshold) {
+        alert('DevTools обнаружены! Тест завершен.');
+        this.finishTest();
+      }
+    }, 1000);
+  }
 
   ngOnInit(): void {
     this.testId = Number(this.route.snapshot.paramMap.get('id'));
     this.startAttempt();
+    this.checkDevTools();
+
     window.addEventListener('beforeunload', this.boundSave);
+    document.addEventListener('visibilitychange', this.handleTabChange);
+    window.addEventListener('blur', this.handleTabChange);
+    document.addEventListener('keydown', this.detectDevToolsKeys);
+    document.addEventListener('copy', this.disableCopy);
+    document.addEventListener('cut', this.disableCopy);
+    document.addEventListener('selectstart', this.disableSelect);
   }
 
   ngOnDestroy(): void {
     clearInterval(this.timer);
     window.removeEventListener('beforeunload', this.boundSave);
+    document.removeEventListener('visibilitychange', this.handleTabChange);
+    window.removeEventListener('blur', this.handleTabChange);
+    document.removeEventListener('keydown', this.detectDevToolsKeys);
+    document.removeEventListener('copy', this.disableCopy);
+    document.removeEventListener('cut', this.disableCopy);
+    document.removeEventListener('selectstart', this.disableSelect);
   }
 
   startAttempt() {
@@ -112,6 +180,9 @@ export class TestStartComponent implements OnInit, OnDestroy {
   }
 
   finishTest() {
+    if (this.isFinished) return;
+    this.isFinished = true;
+
     clearInterval(this.timer);
 
     if (!this.attemptId) {
@@ -126,15 +197,11 @@ export class TestStartComponent implements OnInit, OnDestroy {
       testId: this.testId,
       answers: this.userAnswers
     }).subscribe({
-      next: (res: any) => {
-        console.log('Test submitted successfully', res);
+      next: () => {
         this.router.navigate(['/result', this.attemptId]);
       },
-      error: (err) => {
-        console.error('Error submitting test:', err);
-        if (this.attemptId) {
-          this.router.navigate(['/result', this.attemptId]);
-        }
+      error: () => {
+        this.router.navigate(['/result', this.attemptId]);
       }
     });
   }

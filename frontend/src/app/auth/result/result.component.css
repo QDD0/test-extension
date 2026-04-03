@@ -1,0 +1,147 @@
+.result-container {
+  max-width: 800px;
+  margin: 30px auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.result-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.result-header {
+  padding: 20px;
+  text-align: center;
+  background-color: #007bff;
+  color: white;
+}
+
+.result-header h2 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.back-button {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 20px;
+  background-color: white;
+  color: #007bff;
+  text-decoration: none;
+  border-radius: 20px;
+  font-size: 14px;
+  border: 1px solid #007bff;
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background-color: #e6f0ff;
+}
+
+.score-section {
+  padding: 20px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+.score-value {
+  font-size: 40px;
+  font-weight: bold;
+  margin: 10px 0 5px;
+}
+
+.score-label {
+  font-size: 14px;
+  color: #555;
+}
+
+.progress-bar {
+  background: #eee;
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 10px auto;
+  max-width: 400px;
+}
+
+.progress-fill {
+  background-color: #007bff;
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.questions-section {
+  padding: 20px;
+}
+
+.question-item {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f8f8f8;
+  border-radius: 8px;
+  border-left: 4px solid #007bff;
+}
+
+.question-item.correct {
+  border-left-color: #28a745;
+  background: #f0fff4;
+}
+
+.question-item.incorrect {
+  border-left-color: #dc3545;
+  background: #fff5f5;
+}
+
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.question-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.status-icon.correct {
+  color: #28a745;
+}
+
+.status-icon.incorrect {
+  color: #dc3545;
+}
+
+.answer-section {
+  padding: 10px;
+  background: #fff;
+  border-radius: 6px;
+}
+
+.user-answer.correct {
+  color: #28a745;
+  font-weight: 500;
+}
+
+.user-answer.incorrect {
+  color: #dc3545;
+  text-decoration: line-through;
+}
+
+.correct-answer {
+  padding: 8px;
+  background: #e8f5e9;
+  border-radius: 6px;
+  color: #28a745;
+  border-left: 3px solid #28a745;
+}
+
+.correct-answer strong {
+  color: #2e7d32;
+}

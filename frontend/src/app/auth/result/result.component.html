@@ -1,0 +1,59 @@
+<div class="result-container">
+  <div class="result-card">
+    <div class="result-header">
+      <h2>Результат теста</h2>
+      <a href="/tests-page" class="back-button">← Вернуться к списку тестов</a>
+    </div>
+
+    <div *ngIf="result">
+      <div class="score-section">
+        <div class="score-badge">
+          <h3>Ваш результат</h3>
+          <div class="score-value">{{ result.score }} / {{ result.totalPoints }}</div>
+          <div class="score-label">баллов</div>
+        </div>
+
+        <div class="progress-bar-container">
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width]="result.percentage + '%'"></div>
+          </div>
+          <div class="percentage-text">{{ result.percentage }}%</div>
+        </div>
+      </div>
+
+      <div class="questions-section">
+        <h3 style="margin-bottom: 20px; color: #333;">📝 Детали ответов</h3>
+
+        <div *ngFor="let q of result.questions"
+             class="question-item"
+             [class.correct]="q.correct"
+             [class.incorrect]="!q.correct">
+
+          <div class="question-header">
+            <h4 class="question-text">{{ q.questionText }}</h4>
+            <div class="status-icon" [class.correct]="q.correct" [class.incorrect]="!q.correct">
+              {{ q.correct ? '✓' : '✗' }}
+            </div>
+          </div>
+
+          <div class="answer-section">
+            <div class="answer-label">Ваш ответ:</div>
+            <div class="user-answer" [class.correct]="q.correct" [class.incorrect]="!q.correct">
+              {{ q.userAnswer.join(', ') || 'Нет ответа' }}
+            </div>
+
+            <div *ngIf="!q.correct" class="correct-answer">
+              <strong>✓ Правильный ответ:</strong><br>
+              {{ q.correctAnswers.join(', ') }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!result" style="text-align: center; padding: 50px;">
+      <div class="loading-spinner"></div>
+      <p>Загрузка результатов...</p>
+    </div>
+  </div>
+</div>

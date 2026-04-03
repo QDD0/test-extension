@@ -1,59 +1,14 @@
-# Frontend
+# Основное info
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.0.
+## БД
+В ***compose.yaml*** указываем порт и тд <br> ***application.properties*** настраиваем тоже <br>
+Далее вставляем в бд таблицы, ***находятся в tables.sql***, для того чтобы вставить данные ***data.sql***, *сначала нужно создать человека с формы регистрации*, поэтому запускаем frontend и регистрируем юсера
 
-## Development server
+## Frontend
+- Используется ***Angular***
+- Убедитесь, что есть ***Node.js*** и ***npm*** (чтобы проверить - ```ng version```)
+- Для запуска, сначала переходим в ```cd \frontend``` и прописываем ```ng serve``` для запуска и переходим в <http://localhost:4200/>
 
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Backend
+Чтобы запустить полноценно, нужно выполнить указания с бд, а также понадобиться **jwtSecret** (для примера: ```ThisIsAVeryLongSecretKeyThatIsAtLeastSixtyFourCharactersLongForHS512AlgorithmSecurity987654321```)
+- Остальное разбито по пакетам 

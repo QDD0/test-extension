@@ -7,13 +7,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface TestAttemptRepository extends JpaRepository<TestAttempt, Long> {
 
     @Query("SELECT ta FROM TestAttempt ta WHERE ta.testAttempt.id_test = :testId AND ta.personAttempt.id_person = :personId AND ta.status = :status")
-    Optional<TestAttempt> findByTestIdAndPersonIdAndStatus(
+    List<TestAttempt> findByTestIdAndPersonIdAndStatus(
             @Param("testId") Long testId,
             @Param("personId") Long personId,
             @Param("status") TypeStatus status);

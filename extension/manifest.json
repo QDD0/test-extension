@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Test Restrictions",
+  "version": "1.0",
+  "description": "Запрет переключения вкладок, DevTools, копирования и выделения текста.",
+  "permissions": [
+    "tabs",
+    "activeTab"
+  ],
+  "icons": {
+    "16": "protected.png",
+    "48": "protected.png",
+    "128": "protected.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://localhost:4200/*"],
+      "js": ["content.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    }
+  ]
+}

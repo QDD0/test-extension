@@ -41,9 +41,11 @@ export class TestService {
     return this.http.post(`${this.apiUrl}/attempt/save-progress/${attemptId}`, data, {headers: this.getAuthHeaders()});
   }
 
+  getProgress(attemptId: number) {
+    return this.http.get(`${this.apiUrl}/attempt/progress/${attemptId}`, {headers: this.getAuthHeaders()});
+  }
+
   getResult(attemptId: number) {
-    return this.http.get<TestResult>(
-      `${this.apiUrl}/attempt/result/${attemptId}`, {headers: this.getAuthHeaders()}
-    );
+    return this.http.get<TestResult>(`${this.apiUrl}/attempt/result/${attemptId}`, {headers: this.getAuthHeaders()});
   }
 }

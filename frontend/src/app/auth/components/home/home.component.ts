@@ -35,13 +35,42 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  // startTest(testId: number) {
+  //   const win = window as any;
+  //
+  //   if (!win.__testProtectionAPI) {
+  //     alert('Включите расширение для прохождения теста');
+  //     return;
+  //   }
+  //
+  //   this.testService.startTest(testId).subscribe({
+  //     next: () => {
+  //       this.router.navigate(['/test-start', testId]);
+  //     },
+  //     error: (err) => {
+  //       console.error('Не удалось начать тест', err);
+  //     }
+  //   });
+  // }
+
   startTest(testId: number) {
+    const win = window as any;
+
+    // Проверяем только наличие расширения (не isActive!)
+    if (!win.__testProtectionAPI) {
+      alert(
+        'Расширение не обнаружено.\n\n' +
+        'Обновите страницу (F5) или включите расширение.'
+      );
+      return;
+    }
+
     this.testService.startTest(testId).subscribe({
       next: () => {
         this.router.navigate(['/test-start', testId]);
       },
       error: (err) => {
-        console.error('Не удалось начать тест', err);
+        console.error('Ошибка запуска теста', err);
       }
     });
   }

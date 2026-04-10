@@ -2,36 +2,43 @@
   <div class="container">
     <h2 class="test-title">Тест</h2>
 
-    <div *ngFor="let q of questions; let i = index" class="question-block">
+    <div *ngFor="let question of questions; let i = index; trackBy: trackByQuestion" class="question-block">
       <p class="question-text">
-        <b>Вопрос {{ i + 1 }}:</b> {{ q.question_text }}
+        <b>Вопрос {{ i + 1 }}:</b> {{ question.question_text }}
       </p>
 
-      <div *ngIf="q.type_question === 'SINGLE'" class="answers-container">
-        <div *ngFor="let a of q.answers" class="answer-option">
+      <div *ngIf="question.type_question === 'SINGLE'" class="answers-container">
+        <div *ngFor="let answer of question.answers; trackBy: trackByAnswer" class="answer-option">
           <label>
             <input type="radio"
-                   [name]="'question' + q.id_question"
-                   (change)="userAnswers[q.id_question] = a.id_answer">
-            {{ a.answer_text }}
+                   [name]="'question_' + question.id_question"
+                   [value]="answer.id_answer"
+                   [checked]="userAnswers[question.id_question] === answer.id_answer"
+                   (change)="setSingleAnswer(question.id_question, answer.id_answer)">
+            {{ answer.answer_text }}
           </label>
         </div>
       </div>
 
-      <div *ngIf="q.type_question === 'MULTIPLE'" class="answers-container">
-        <div *ngFor="let a of q.answers" class="answer-option">
+      <div *ngIf="question.type_question === 'MULTIPLE'" class="answers-container">
+        <div *ngFor="let answer of question.answers; trackBy: trackByAnswer" class="answer-option">
           <label>
             <input type="checkbox"
-                   (change)="toggleMultiple(q.id_question, a.id_answer, $event)">
-            {{ a.answer_text }}
+                   [checked]="userAnswers[question.id_question]?.includes(answer.id_answer)"
+                   (change)="toggleMultiple(question.id_question, answer.id_answer, $event)">
+            {{ answer.answer_text }}
           </label>
         </div>
       </div>
 
-      <div *ngIf="q.type_question === 'TEXT'">
-        <input type="text"
-               placeholder="Введите ответ"
-               (input)="userAnswers[q.id_question] = $any($event.target).value">
+      <div *ngIf="question.type_question === 'TEXT'" class="text-answer-container">
+        <textarea
+          [id]="'text_' + question.id_question"
+          (input)="setTextAnswer(question.id_question, $event)"
+          placeholder="Введите ваш ответ..."
+          rows="4"
+          class="form-control"
+        >{{ userAnswers[question.id_question] || '' }}</textarea>
       </div>
     </div>
   </div>

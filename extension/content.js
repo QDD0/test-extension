@@ -4,6 +4,22 @@
     let devToolsDetected = false;
     let devToolsInterval = null;
 
+    window.__testProtectionAPI = {
+        version: '1.0',
+        isActive: () => protectionActive,
+        getTabSwitchCount: () => tabSwitchCount
+    };
+
+    function initProtection() {
+        console.log('Test protection initialized');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initProtection);
+    } else {
+        initProtection();
+    }
+
     function isTestPage() {
         return !!document.querySelector('app-test-start');
     }
@@ -92,6 +108,34 @@
     function handleKeyDown(e) {
         if (!protectionActive) return;
 
+        if (e.metaKey && e.shiftKey && e.code === 'KeyS') {
+            e.preventDefault();
+            e.stopPropagation();
+            alert('Создание скриншотов запрещено');
+            notifyAngular('screenshotBlocked', { type: 'win+shift+s' });
+            return;
+        }
+
+        if (e.metaKey && e.code === 'PrintScreen') {
+            e.preventDefault();
+            e.stopPropagation();
+            alert('Создание скриншотов запрещено');
+            return;
+        }
+
+        if (e.code === 'PrintScreen') {
+            e.preventDefault();
+            e.stopPropagation();
+            alert('Создание скриншотов запрещено');
+            return;
+        }
+
+        if (e.ctrlKey && e.shiftKey && e.code === 'KeyS') {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+
         const devKeys =
             e.key === 'F12' ||
             (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) ||
@@ -104,7 +148,7 @@
             notifyAngular('devToolsViolation');
         }
 
-        if ((e.ctrlKey || e.metaKey) && ['R', 'P'].includes(e.key.toUpperCase())) {
+        if ((e.ctrlKey || e.metaKey) && e.code === 'KeyR') {
             e.preventDefault();
             alert('Действие запрещено');
         }
@@ -159,11 +203,6 @@
         childList: true,
         subtree: true
     });
-
-    window.__testProtectionAPI = {
-        isActive: () => protectionActive,
-        getTabSwitchCount: () => tabSwitchCount
-    };
 
     console.log('Test protection READY');
 })();

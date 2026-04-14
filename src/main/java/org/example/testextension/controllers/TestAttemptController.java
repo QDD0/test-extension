@@ -51,6 +51,76 @@ public class TestAttemptController {
         }
     }
 
+    private void calculateAndSaveResult(TestAttempt attempt) {
+        List<AttemptAnswer> attemptAnswers =
+                attemptAnswerRepository.findByTestAttempt(attempt);
+
+        int totalPoints = 0;
+        int score = 0;
+
+        Map<Long, List<AttemptAnswer>> grouped = attemptAnswers.stream()
+                .collect(Collectors.groupingBy(a -> a.getMainQuestion().getId_question()));
+
+        for (Map.Entry<Long, List<AttemptAnswer>> entry : grouped.entrySet()) {
+
+            List<AttemptAnswer> userAnswers = entry.getValue();
+            if (userAnswers == null || userAnswers.isEmpty()) {
+                continue;
+            }
+
+            Question question = userAnswers.get(0).getMainQuestion();
+            if (question == null) {
+                continue;
+            }
+
+            totalPoints += question.getPoints();
+            List<Answer> correctAnswers = question.getAnswers().stream()
+                    .filter(Answer::getIs_correct)
+                    .toList();
+
+            boolean isCorrect = false;
+            if ("SINGLE".equals(question.getType_question().name())) {
+                if (userAnswers.get(0).getMainAnswer() != null) {
+                    isCorrect = Boolean.TRUE.equals(
+                            userAnswers.get(0).getMainAnswer().getIs_correct()
+                    );
+                }
+            } else if ("MULTIPLE".equals(question.getType_question().name())) {
+                List<Long> userIds = userAnswers.stream()
+                        .filter(a -> a.getMainAnswer() != null)
+                        .map(a -> a.getMainAnswer().getId_answer())
+                        .toList();
+
+                List<Long> correctIds = correctAnswers.stream()
+                        .map(Answer::getId_answer)
+                        .toList();
+
+                isCorrect = userIds.containsAll(correctIds)
+                        && correctIds.containsAll(userIds);
+
+            } else if ("TEXT".equals(question.getType_question().name())) {
+                String userText = userAnswers.get(0).getText_answer();
+                String correctText = correctAnswers.isEmpty()
+                        ? null
+                        : correctAnswers.get(0).getAnswer_text();
+                isCorrect = userText != null
+                        && correctText != null
+                        && userText.equalsIgnoreCase(correctText);
+            }
+            if (isCorrect) {
+                score += question.getPoints();
+            }
+        }
+
+        int percentage = totalPoints == 0 ? 0 : (score * 100 / totalPoints);
+
+        attempt.setScore(score);
+        TestAttempt saved = attemptRepository.save(attempt);
+
+        log.info("SAVED TO DB -> score={}",
+                saved.getScore());
+    }
+
     @PostMapping("/submit")
     public ResponseEntity<?> submitTest(@RequestBody Map<String, Object> data) {
         try {
@@ -89,6 +159,8 @@ public class TestAttemptController {
                 attempt = attempts.get(0);
                 log.debug("Found single active attempt: {}", attempt.getId_attempt());
             }
+
+            calculateAndSaveResult(attempt);
 
             saveAnswers(answers, attempt, currentUser);
 
@@ -147,26 +219,22 @@ public class TestAttemptController {
 
     @PostMapping("/finish/{attemptId}")
     public ResponseEntity<?> finishAttempt(@PathVariable Long attemptId) {
-        try {
-            TestAttempt attempt = attemptRepository.findById(attemptId)
-                    .orElseThrow(() -> new RuntimeException("Попытка не найдена"));
 
-            log.info("Finishing attempt {} for user {}", attemptId, attempt.getPersonAttempt().getEmail());
+        TestAttempt attempt = attemptRepository.findById(attemptId)
+                .orElseThrow(() -> new RuntimeException("Попытка не найдена"));
 
-            attempt.setEnd_time(LocalDateTime.now());
-            attempt.setStatus(TypeStatus.COMPLETED);
+        calculateAndSaveResult(attempt);
 
-            TestAttempt finishedAttempt = attemptRepository.save(attempt);
-            log.info("Attempt {} finished successfully", attemptId);
+        attempt.setEnd_time(LocalDateTime.now());
+        attempt.setStatus(TypeStatus.COMPLETED);
 
-            return ResponseEntity.ok(finishedAttempt);
+        TestAttempt saved = attemptRepository.save(attempt);
 
-        } catch (Exception e) {
-            log.error("Error finishing attempt: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+        log.info("SAVED FINAL RESULT -> score={}",
+                saved.getScore());
+
+        return ResponseEntity.ok(saved);
     }
-
 
     @PostMapping("/save-progress/{attemptId}")
     public ResponseEntity<?> saveProgress(@PathVariable Long attemptId,

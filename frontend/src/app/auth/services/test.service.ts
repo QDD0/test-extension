@@ -13,8 +13,7 @@ export class TestService {
   }
 
   private getAuthHeaders(): HttpHeaders {
-    const token = localStorage.getItem('token');
-    return new HttpHeaders({Authorization: `Bearer ${token}`});
+    const token = localStorage.getItem('token'); return new HttpHeaders({Authorization: `Bearer ${token}`});
   }
 
   getAllTests(): Observable<Test[]> {
@@ -47,5 +46,10 @@ export class TestService {
 
   getResult(attemptId: number) {
     return this.http.get<TestResult>(`${this.apiUrl}/attempt/result/${attemptId}`, {headers: this.getAuthHeaders()});
+  }
+
+  sendViolation(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/api/monitoring/violation`, data, {headers: this.getAuthHeaders()}
+    );
   }
 }

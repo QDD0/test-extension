@@ -94,18 +94,19 @@ export class TestStartComponent implements OnInit, OnDestroy {
     this.testService.startTest(this.testId).subscribe({
       next: (attempt: any) => {
         this.attemptId = attempt.id_attempt;
+        (window as any).attemptId = this.attemptId;
 
         localStorage.setItem('attemptId', this.attemptId.toString());
         localStorage.setItem('testId', this.testId.toString());
 
         console.log('New attempt started with ID:', this.attemptId);
 
-        // Загружаем информацию о тесте и вопросы
         this.loadTestInfo();
       },
       error: (err) => console.error('Error starting attempt:', err)
     });
   }
+
 
   resetAllState() {
     console.log('Resetting all state for new attempt');
@@ -444,23 +445,29 @@ export class TestStartComponent implements OnInit, OnDestroy {
   handleViolation(event: any) {
     this.ngZone.run(() => {
       const { reason, count } = event.detail;
+
       console.log(`Violation: ${reason}`, event.detail);
+
+      if (this.attemptId) {
+        this.testService.sendViolation({
+          attemptId: this.attemptId,
+          eventType: reason,
+          eventData: event.detail
+        }).subscribe({
+          next: () => console.log('Violation saved'),
+          error: err => console.error('Violation error', err)
+        });
+      }
 
       switch(reason) {
         case 'tabSwitchWarning':
           this.tabSwitchCount = count || 1;
-          console.warn(`Tab switch warning #${this.tabSwitchCount}`);
           break;
 
         case 'tabSwitchViolation':
         case 'devToolsViolation':
         case 'devToolsDetected':
-          console.error(`Test finished due to: ${reason}`);
           this.finishTest();
-          break;
-
-        case 'extensionReady':
-          console.log('Extension is ready and protection is active');
           break;
       }
     });

@@ -88,13 +88,21 @@ export class TestStartComponent implements OnInit, OnDestroy {
     window.removeEventListener('testViolation', this.boundHandleViolation);
   }
 
+  private isStarting = false;
+
   startAttempt() {
+    if (this.isStarting) {
+      console.warn('Attempt already starting, skipping...');
+      return;
+    }
+
+    this.isStarting = true;
+
     this.resetAllState();
 
     this.testService.startTest(this.testId).subscribe({
       next: (attempt: any) => {
         this.attemptId = attempt.id_attempt;
-        (window as any).attemptId = this.attemptId;
 
         localStorage.setItem('attemptId', this.attemptId.toString());
         localStorage.setItem('testId', this.testId.toString());
@@ -103,10 +111,12 @@ export class TestStartComponent implements OnInit, OnDestroy {
 
         this.loadTestInfo();
       },
-      error: (err) => console.error('Error starting attempt:', err)
+      error: (err) => {
+        console.error('Error starting attempt:', err);
+        this.isStarting = false;
+      }
     });
   }
-
 
   resetAllState() {
     console.log('Resetting all state for new attempt');
@@ -483,13 +493,11 @@ export class TestStartComponent implements OnInit, OnDestroy {
       clearTimeout(this.autoSaveTimeout);
     }
 
-    this.forceSave();
-
     console.log('Finishing test with attemptId:', this.attemptId);
     console.log('Final answers:', this.userAnswers);
 
     this.testService.submitTest({
-      testId: this.testId,
+      attemptId: this.attemptId,
       answers: this.userAnswers
     }).subscribe({
       next: () => {

@@ -54,55 +54,39 @@ public class TestAttemptController {
     @PostMapping("/submit")
     public ResponseEntity<?> submitTest(@RequestBody Map<String, Object> data) {
         try {
-            Integer testId = (Integer) data.get("testId");
+            Long attemptId = Long.valueOf(data.get("attemptId").toString());
             Map<String, Object> answers = (Map<String, Object>) data.get("answers");
 
-            Person currentUser = personRepository.findByEmail(getCurrentUserEmail())
-                    .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+            TestAttempt attempt = attemptRepository.findById(attemptId)
+                    .orElseThrow(() -> new RuntimeException("Попытка не найдена"));
 
-            log.info("Submitting test for user: {}, testId: {}", currentUser.getEmail(), testId);
+            log.info("Submitting attempt {}", attemptId);
 
-            List<TestAttempt> attempts = attemptRepository.findByTestIdAndPersonIdAndStatus(
-                    testId.longValue(), currentUser.getId_person(), TypeStatus.IN_PROGRESS
-            );
-
-            TestAttempt attempt;
-
-            if (attempts.isEmpty()) {
-                log.error("No active attempt found for test {} and user {}", testId, currentUser.getEmail());
-                throw new RuntimeException("Нет активной попытки для завершения");
-
-            } else if (attempts.size() > 1) {
-                log.warn("Found {} active attempts for test {} and user {}. Using first and cleaning others",
-                        attempts.size(), testId, currentUser.getEmail());
-
-                attempt = attempts.get(0);
-
-                for (int i = 1; i < attempts.size(); i++) {
-                    TestAttempt extraAttempt = attempts.get(i);
-                    extraAttempt.setStatus(TypeStatus.BLOCKED);
-                    attemptRepository.save(extraAttempt);
-                    log.info("Marked extra attempt {} as ERROR", extraAttempt.getId_attempt());
-                }
-
-            } else {
-                attempt = attempts.get(0);
-                log.debug("Found single active attempt: {}", attempt.getId_attempt());
+            if (attempt.getStatus() == TypeStatus.COMPLETED) {
+                log.warn("Attempt {} already completed", attemptId);
+                return ResponseEntity.ok(Map.of(
+                        "message", "Тест уже завершен",
+                        "attemptId", attempt.getId_attempt()
+                ));
             }
-
-            saveAnswers(answers, attempt, currentUser);
 
             attempt.setEnd_time(LocalDateTime.now());
             attempt.setStatus(TypeStatus.COMPLETED);
+
+            log.error("SETTING END TIME: {}", LocalDateTime.now());
             attemptRepository.save(attempt);
 
-            log.info("Test {} completed successfully for user {}", testId, currentUser.getEmail());
+            TestAttempt saved = attemptRepository.save(attempt);
+            log.error("SAVED END TIME FROM DB: {}", saved.getEnd_time());
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Тест успешно завершен");
-            response.put("attemptId", attempt.getId_attempt());
+            saveAnswers(answers, attempt, attempt.getPersonAttempt());
 
-            return ResponseEntity.ok(response);
+            log.info("Attempt {} completed successfully", attemptId);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Тест успешно завершен",
+                    "attemptId", attempt.getId_attempt()
+            ));
 
         } catch (Exception e) {
             log.error("Error submitting test: {}", e.getMessage(), e);
@@ -118,13 +102,15 @@ public class TestAttemptController {
 
             log.info("Starting test {} for user {}", testId, currentUser.getEmail());
 
-            List<TestAttempt> existingAttempts = attemptRepository.findByTestIdAndPersonIdAndStatus(
-                    testId, currentUser.getId_person(), TypeStatus.IN_PROGRESS
-            );
+            List<TestAttempt> existingAttempts = attemptRepository
+                    .findByTestIdAndPersonIdAndStatus(
+                            testId, currentUser.getId_person(), TypeStatus.IN_PROGRESS
+                    );
 
-            for (TestAttempt old : existingAttempts) {
-                old.setStatus(TypeStatus.BLOCKED);
-                attemptRepository.save(old);
+            if (!existingAttempts.isEmpty()) {
+                TestAttempt existing = existingAttempts.get(0);
+                log.warn("Returning existing IN_PROGRESS attempt {}", existing.getId_attempt());
+                return ResponseEntity.ok(existing);
             }
 
             TestAttempt attempt = new TestAttempt();
@@ -134,6 +120,7 @@ public class TestAttemptController {
             attempt.setTestAttempt(new Test(testId));
 
             TestAttempt savedAttempt = attemptRepository.save(attempt);
+
             log.info("Created new attempt {} for test {} and user {}",
                     savedAttempt.getId_attempt(), testId, currentUser.getEmail());
 
@@ -427,6 +414,9 @@ public class TestAttemptController {
                     "percentage", percentage,
                     "questions", questionResults
             );
+
+            attempt.setScore(score);
+            attemptRepository.save(attempt);
 
             log.info("Result calculated: score={}, totalPoints={}, percentage={}", score, totalPoints, percentage);
             return ResponseEntity.ok(response);

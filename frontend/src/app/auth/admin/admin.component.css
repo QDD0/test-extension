@@ -1,0 +1,159 @@
+.admin-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+h2 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.admin-layout {
+  display: flex;
+  gap: 30px;
+}
+
+.users-panel {
+  flex: 0 0 300px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.details-panel {
+  flex: 1;
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.user-item {
+  padding: 15px;
+  margin-bottom: 10px;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 2px solid transparent;
+}
+
+.user-item:hover {
+  background: #e3f2fd;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.user-item.selected {
+  border-color: #1976d2;
+  background: #e3f2fd;
+}
+
+.attempt-item {
+  padding: 15px;
+  margin-bottom: 10px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 2px solid transparent;
+}
+
+.attempt-item:hover {
+  background: #87cefa;
+}
+
+.attempt-item.selected {
+  border-color: #87cefa;
+  background: #87cefa;
+}
+
+.attempt-info {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.violations-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.violations-table th,
+.violations-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.violations-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+}
+
+.violations-table tr:hover {
+  background: #f8f9fa;
+}
+
+.no-data {
+  color: #6c757d;
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+}
+
+.initial-state {
+  text-align: center;
+  padding: 50px;
+  color: #6c757d;
+  font-size: 18px;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
+}
+
+.user-email {
+  color: #6c757d;
+  font-size: 14px;
+}
+
+h3 {
+  color: #495057;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.exit-button {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(238, 90, 36, 0.3);
+}
+
+.exit-button:hover {
+  background: linear-gradient(135deg, #ee5a24, #d63031);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(214, 48, 49, 0.4);
+}
+
+.exit-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(214, 48, 49, 0.3);
+}
+
+.exit-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(238, 90, 36, 0.3);
+}

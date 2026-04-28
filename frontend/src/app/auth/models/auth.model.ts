@@ -78,3 +78,11 @@ export interface TestResult {
   percentage: number;
   questions: QuestionResult[];
 }
+
+export interface ActivityEvent {
+  id_event: number;
+  id_attempt: number;
+  event_type: string;
+  event_time: Date;
+  event_data: any;
+}

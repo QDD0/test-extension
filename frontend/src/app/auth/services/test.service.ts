@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {Test, Question, TestResult} from '../models/auth.model';
+import {Test, Question, TestResult, ActivityEvent} from '../models/auth.model';
 
 @Injectable({
   providedIn: 'root'
@@ -50,6 +50,19 @@ export class TestService {
 
   sendViolation(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/api/monitoring/violation`, data, {headers: this.getAuthHeaders()}
+    );
+  }
+
+  getUsers(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/admin/users`, { headers: this.getAuthHeaders() });
+  }
+
+  getUserAttempts(userId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/admin/user/${userId}/attempts`, { headers: this.getAuthHeaders() });
+  }
+
+  getViolations(attemptId: number): Observable<ActivityEvent[]> {
+    return this.http.get<ActivityEvent[]>(`${this.apiUrl}/admin/attempt/${attemptId}/events`, { headers: this.getAuthHeaders() }
     );
   }
 }

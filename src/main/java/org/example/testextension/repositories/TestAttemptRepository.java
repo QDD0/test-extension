@@ -18,4 +18,7 @@ public interface TestAttemptRepository extends JpaRepository<TestAttempt, Long> 
             @Param("testId") Long testId,
             @Param("personId") Long personId,
             @Param("status") TypeStatus status);
+
+    @Query("SELECT ta FROM TestAttempt ta WHERE ta.personAttempt.id_person = :userId")
+    List<TestAttempt> findAttemptsByUserId(@Param("userId") Long userId);
 }

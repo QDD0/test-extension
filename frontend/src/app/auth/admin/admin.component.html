@@ -1,0 +1,73 @@
+<button class="exit-button" (click)="exit()">Выйти</button>
+
+<div class="admin-container">
+  <h2>Панель администратора</h2>
+
+  <div class="admin-layout">
+    <div class="users-panel">
+      <h3>Пользователи</h3>
+      <div class="users-list">
+        <div *ngFor="let user of users"
+             class="user-item"
+             [class.selected]="selectedUser?.id_person === user.id_person"
+             (click)="selectUser(user)">
+          <div class="user-name">{{ user.first_name }} {{ user.last_name }}</div>
+          <div class="user-email">{{ user.email }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="details-panel">
+      <div *ngIf="selectedUser" class="attempts-section">
+        <h3>Попытки пользователя: {{ selectedUser.first_name }} {{ selectedUser.last_name }}</h3>
+
+        <div *ngIf="attempts.length > 0; else noAttempts">
+          <div *ngFor="let attempt of attempts"
+               class="attempt-item"
+               [class.selected]="selectedAttempt?.id_attempt === attempt.id_attempt"
+               (click)="loadViolations(attempt)">
+            <div class="attempt-info">
+              <span>Тест ID: {{ attempt.id_test }}</span>
+              <span>Статус: {{ attempt.status }}</span>
+              <span>Баллы: {{ attempt.score || 0 }}</span>
+              <span>Дата: {{ attempt.start_time | date:'medium' }}</span>
+            </div>
+          </div>
+        </div>
+        <ng-template #noAttempts>
+          <p class="no-data">Нет попыток для отображения</p>
+        </ng-template>
+      </div>
+
+      <div *ngIf="selectedAttempt" class="violations-section">
+        <h3>Нарушения для попытки #{{ selectedAttempt.id_attempt }}</h3>
+
+        <div *ngIf="violations.length > 0; else noViolations">
+          <table class="violations-table">
+            <thead>
+            <tr>
+              <th>Тип нарушения</th>
+              <th>Время</th>
+<!--              <th>Данные</th>-->
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let violation of violations">
+              <td>{{ violation.event_type }}</td>
+              <td>{{ violation.event_time | date:'medium' }}</td>
+<!--              <td>{{ violation.event_data | json }}</td>-->
+            </tr>
+            </tbody>
+          </table>
+        </div>
+        <ng-template #noViolations>
+          <p class="no-data">Нет нарушений для отображения</p>
+        </ng-template>
+      </div>
+
+      <div *ngIf="!selectedUser" class="initial-state">
+        <p>Выберите пользователя для просмотра его попыток и нарушений</p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -54,55 +54,39 @@ public class TestAttemptController {
     @PostMapping("/submit")
     public ResponseEntity<?> submitTest(@RequestBody Map<String, Object> data) {
         try {
-            Integer testId = (Integer) data.get("testId");
+            Long attemptId = Long.valueOf(data.get("attemptId").toString());
             Map<String, Object> answers = (Map<String, Object>) data.get("answers");
 
-            Person currentUser = personRepository.findByEmail(getCurrentUserEmail())
-                    .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+            TestAttempt attempt = attemptRepository.findById(attemptId)
+                    .orElseThrow(() -> new RuntimeException("Попытка не найдена"));
 
-            log.info("Submitting test for user: {}, testId: {}", currentUser.getEmail(), testId);
+            log.info("Submitting attempt {}", attemptId);
 
-            List<TestAttempt> attempts = attemptRepository.findByTestIdAndPersonIdAndStatus(
-                    testId.longValue(), currentUser.getId_person(), TypeStatus.IN_PROGRESS
-            );
-
-            TestAttempt attempt;
-
-            if (attempts.isEmpty()) {
-                log.error("No active attempt found for test {} and user {}", testId, currentUser.getEmail());
-                throw new RuntimeException("Нет активной попытки для завершения");
-
-            } else if (attempts.size() > 1) {
-                log.warn("Found {} active attempts for test {} and user {}. Using first and cleaning others",
-                        attempts.size(), testId, currentUser.getEmail());
-
-                attempt = attempts.get(0);
-
-                for (int i = 1; i < attempts.size(); i++) {
-                    TestAttempt extraAttempt = attempts.get(i);
-                    extraAttempt.setStatus(TypeStatus.BLOCKED);
-                    attemptRepository.save(extraAttempt);
-                    log.info("Marked extra attempt {} as ERROR", extraAttempt.getId_attempt());
-                }
-
-            } else {
-                attempt = attempts.get(0);
-                log.debug("Found single active attempt: {}", attempt.getId_attempt());
+            if (attempt.getStatus() == TypeStatus.COMPLETED) {
+                log.warn("Attempt {} already completed", attemptId);
+                return ResponseEntity.ok(Map.of(
+                        "message", "Тест уже завершен",
+                        "attemptId", attempt.getId_attempt()
+                ));
             }
-
-            saveAnswers(answers, attempt, currentUser);
 
             attempt.setEnd_time(LocalDateTime.now());
             attempt.setStatus(TypeStatus.COMPLETED);
+
+            log.error("SETTING END TIME: {}", LocalDateTime.now());
             attemptRepository.save(attempt);
 
-            log.info("Test {} completed successfully for user {}", testId, currentUser.getEmail());
+            TestAttempt saved = attemptRepository.save(attempt);
+            log.error("SAVED END TIME FROM DB: {}", saved.getEnd_time());
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Тест успешно завершен");
-            response.put("attemptId", attempt.getId_attempt());
+            saveAnswers(answers, attempt, attempt.getPersonAttempt());
 
-            return ResponseEntity.ok(response);
+            log.info("Attempt {} completed successfully", attemptId);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Тест успешно завершен",
+                    "attemptId", attempt.getId_attempt()
+            ));
 
         } catch (Exception e) {
             log.error("Error submitting test: {}", e.getMessage(), e);
@@ -118,15 +102,15 @@ public class TestAttemptController {
 
             log.info("Starting test {} for user {}", testId, currentUser.getEmail());
 
-            List<TestAttempt> existingAttempts = attemptRepository.findByTestIdAndPersonIdAndStatus(
-                    testId, currentUser.getId_person(), TypeStatus.IN_PROGRESS
-            );
+            List<TestAttempt> existingAttempts = attemptRepository
+                    .findByTestIdAndPersonIdAndStatus(
+                            testId, currentUser.getId_person(), TypeStatus.IN_PROGRESS
+                    );
 
             if (!existingAttempts.isEmpty()) {
-                log.warn("User {} already has {} active attempts for test {}. Returning existing attempt.",
-                        currentUser.getEmail(), existingAttempts.size(), testId);
-
-                return ResponseEntity.ok(existingAttempts.get(0));
+                TestAttempt existing = existingAttempts.get(0);
+                log.warn("Returning existing IN_PROGRESS attempt {}", existing.getId_attempt());
+                return ResponseEntity.ok(existing);
             }
 
             TestAttempt attempt = new TestAttempt();
@@ -136,6 +120,7 @@ public class TestAttemptController {
             attempt.setTestAttempt(new Test(testId));
 
             TestAttempt savedAttempt = attemptRepository.save(attempt);
+
             log.info("Created new attempt {} for test {} and user {}",
                     savedAttempt.getId_attempt(), testId, currentUser.getEmail());
 
@@ -170,21 +155,75 @@ public class TestAttemptController {
     }
 
     @PostMapping("/save-progress/{attemptId}")
-    public ResponseEntity<?> saveProgress(@PathVariable Long attemptId, @RequestBody Map<String, Object> answers) {
-        try {
-            TestAttempt attempt = attemptRepository.findById(attemptId)
-                    .orElseThrow(() -> new RuntimeException("Попытка не найдена"));
+    public ResponseEntity<?> saveProgress(@PathVariable Long attemptId,
+                                          @RequestBody Map<String, Object> answers) {
+        log.info("SAVE PROGRESS");
+        log.info("Attempt ID: {}", attemptId);
+        log.info("Received answers: {}", answers);
 
-            log.info("Saving progress for attempt {}", attemptId);
+        TestAttempt attempt = attemptRepository.findById(attemptId)
+                .orElseThrow(() -> new RuntimeException("Попытка не найдена"));
 
-            saveAnswers(answers, attempt, attempt.getPersonAttempt());
+        for (Map.Entry<String, Object> entry : answers.entrySet()) {
+            Long questionId = Long.valueOf(entry.getKey());
+            Object answerValue = entry.getValue();
 
-            log.info("Progress saved for attempt {}", attemptId);
-            return ResponseEntity.ok(Map.of("message", "Прогресс сохранен"));
+            log.debug("Updating question {} with value: {}", questionId, answerValue);
 
-        } catch (Exception e) {
-            log.error("Error saving progress: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            int deletedCount = attemptAnswerRepository.findByTestAttemptAndQuestionId(attempt, questionId).size();
+            attemptAnswerRepository.deleteByTestAttemptAndMainQuestion_Id(attempt, questionId);
+            log.debug("Deleted {} old answers for question {}", deletedCount, questionId);
+
+            saveAnswerForQuestion(questionId, answerValue, attempt);
+        }
+
+        List<AttemptAnswer> allAnswers = attemptAnswerRepository.findByTestAttempt(attempt);
+        log.info("Total answers after save: {}", allAnswers.size());
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Прогресс сохранен",
+                "savedQuestions", answers.size(),
+                "totalAnswers", allAnswers.size()
+        ));
+    }
+
+    private void saveAnswerForQuestion(Long questionId, Object answerValue, TestAttempt attempt) {
+        if (answerValue instanceof Integer) {
+            AttemptAnswer aa = new AttemptAnswer();
+            aa.setTestAttempt(attempt);
+            aa.setMainQuestion(new Question(questionId));
+            aa.setMainAnswer(new Answer(((Integer) answerValue).longValue()));
+            aa.setAnswered_at(LocalDateTime.now());
+            attemptAnswerRepository.save(aa);
+            log.debug("Saved SINGLE answer: question={}, answer={}", questionId, answerValue);
+
+        } else if (answerValue instanceof List) {
+            List<?> list = (List<?>) answerValue;
+            for (Object ansObj : list) {
+                if (ansObj instanceof Integer) {
+                    AttemptAnswer aa = new AttemptAnswer();
+                    aa.setTestAttempt(attempt);
+                    aa.setMainQuestion(new Question(questionId));
+                    aa.setMainAnswer(new Answer(((Integer) ansObj).longValue()));
+                    aa.setAnswered_at(LocalDateTime.now());
+                    attemptAnswerRepository.save(aa);
+                }
+            }
+            log.debug("Saved MULTIPLE answers: question={}, answers={}", questionId, list);
+
+        } else if (answerValue instanceof String) {
+            String textValue = (String) answerValue;
+            if (textValue != null && !textValue.trim().isEmpty()) {
+                AttemptAnswer aa = new AttemptAnswer();
+                aa.setTestAttempt(attempt);
+                aa.setMainQuestion(new Question(questionId));
+                aa.setText_answer(textValue);
+                aa.setAnswered_at(LocalDateTime.now());
+                attemptAnswerRepository.save(aa);
+                log.debug("Saved TEXT answer: question={}, text='{}'", questionId, textValue);
+            } else {
+                log.warn("Skipping empty TEXT answer for question {}", questionId);
+            }
         }
     }
 
@@ -195,10 +234,16 @@ public class TestAttemptController {
         }
 
         int answerCount = 0;
+        log.info("Saving answers for attempt {}: {}", attempt.getId_attempt(), answers.keySet());
 
         for (Map.Entry<String, Object> entry : answers.entrySet()) {
             Long questionId = Long.valueOf(entry.getKey());
             Object answerValue = entry.getValue();
+
+            log.debug("Processing question {} with value type: {}",
+                    questionId,
+                    answerValue != null ? answerValue.getClass().getSimpleName() : "null");
+            log.debug("Value: {}", answerValue);
 
             if (answerValue instanceof Integer) {
                 AttemptAnswer aa = new AttemptAnswer();
@@ -209,6 +254,7 @@ public class TestAttemptController {
                 aa.setAnswered_at(LocalDateTime.now());
                 attemptAnswerRepository.save(aa);
                 answerCount++;
+                log.debug("Saved SINGLE answer for question {}", questionId);
 
             } else if (answerValue instanceof List) {
                 List<?> list = (List<?>) answerValue;
@@ -224,19 +270,28 @@ public class TestAttemptController {
                         answerCount++;
                     }
                 }
+                log.debug("Saved MULTIPLE answers for question {}: {} answers", questionId, list.size());
 
             } else if (answerValue instanceof String) {
-                AttemptAnswer aa = new AttemptAnswer();
-                aa.setTestAttempt(attempt);
-                aa.setMainQuestion(new Question(questionId));
-                aa.setText_answer((String) answerValue);
-                aa.setMainAnswer(null);
-                aa.setAnswered_at(LocalDateTime.now());
-                attemptAnswerRepository.save(aa);
-                answerCount++;
+                String textAnswer = (String) answerValue;
+                if (textAnswer != null && !textAnswer.trim().isEmpty()) {
+                    AttemptAnswer aa = new AttemptAnswer();
+                    aa.setTestAttempt(attempt);
+                    aa.setMainQuestion(new Question(questionId));
+                    aa.setText_answer(textAnswer);
+                    aa.setMainAnswer(null);
+                    aa.setAnswered_at(LocalDateTime.now());
+                    attemptAnswerRepository.save(aa);
+                    answerCount++;
+                    log.debug("Saved TEXT answer for question {}: '{}'", questionId, textAnswer);
+                } else {
+                    log.warn("Skipping empty text answer for question {}", questionId);
+                }
+            } else {
+                log.warn("Unknown answer type for question {}: {}", questionId, answerValue);
             }
         }
-        log.debug("Saved {} answers for attempt {}", answerCount, attempt.getId_attempt());
+        log.info("Total saved {} answers for attempt {}", answerCount, attempt.getId_attempt());
     }
 
     @GetMapping("/result/{attemptId}")
@@ -296,8 +351,7 @@ public class TestAttemptController {
                         } else {
                             log.warn("No answer found for SINGLE question: {}", question.getId_question());
                         }
-                    }
-                    else if ("MULTIPLE".equals(question.getType_question().name())) {
+                    } else if ("MULTIPLE".equals(question.getType_question().name())) {
                         if (!userAnswers.isEmpty() && !correctAnswers.isEmpty()) {
                             List<Long> userIds = userAnswers.stream()
                                     .filter(a -> a != null && a.getMainAnswer() != null)
@@ -312,8 +366,7 @@ public class TestAttemptController {
                         } else {
                             log.warn("No answers or correct answers for MULTIPLE question: {}", question.getId_question());
                         }
-                    }
-                    else if ("TEXT".equals(question.getType_question().name())) {
+                    } else if ("TEXT".equals(question.getType_question().name())) {
                         if (userAnswers.get(0) != null && !correctAnswers.isEmpty()) {
                             String userText = userAnswers.get(0).getText_answer();
                             String correctText = correctAnswers.get(0).getAnswer_text();
@@ -362,6 +415,9 @@ public class TestAttemptController {
                     "questions", questionResults
             );
 
+            attempt.setScore(score);
+            attemptRepository.save(attempt);
+
             log.info("Result calculated: score={}, totalPoints={}, percentage={}", score, totalPoints, percentage);
             return ResponseEntity.ok(response);
 
@@ -369,5 +425,62 @@ public class TestAttemptController {
             log.error("Error getting result for attempt {}: {}", attemptId, e.getMessage(), e);
             return ResponseEntity.status(500).body(Map.of("error", "Ошибка при получении результатов: " + e.getMessage()));
         }
+    }
+
+    @GetMapping("/progress/{attemptId}")
+    public ResponseEntity<?> getProgress(@PathVariable Long attemptId) {
+        TestAttempt attempt = attemptRepository.findById(attemptId)
+                .orElseThrow(() -> new RuntimeException("Попытка не найдена"));
+
+        List<AttemptAnswer> answers = attemptAnswerRepository.findByTestAttempt(attempt);
+
+        log.info("Loading progress for attempt {}, found {} answers", attemptId, answers.size());
+
+        Map<Long, Object> result = new HashMap<>();
+
+        Map<Long, List<AttemptAnswer>> groupedAnswers = answers.stream()
+                .collect(Collectors.groupingBy(a -> a.getMainQuestion().getId_question()));
+
+        for (Map.Entry<Long, List<AttemptAnswer>> entry : groupedAnswers.entrySet()) {
+            Long questionId = entry.getKey();
+            List<AttemptAnswer> questionAnswers = entry.getValue();
+
+            if (questionAnswers.isEmpty()) continue;
+
+            Question question = questionAnswers.get(0).getMainQuestion();
+            String questionType = question.getType_question().name();
+
+            log.debug("Processing question {} of type {}", questionId, questionType);
+
+            if ("MULTIPLE".equals(questionType)) {
+                List<Long> answerIds = questionAnswers.stream()
+                        .filter(a -> a.getMainAnswer() != null)
+                        .map(a -> a.getMainAnswer().getId_answer())
+                        .collect(Collectors.toList());
+                result.put(questionId, answerIds);
+                log.debug("Restored MULTIPLE answer for question {}: {}", questionId, answerIds);
+
+            } else if ("SINGLE".equals(questionType)) {
+                AttemptAnswer firstAnswer = questionAnswers.get(0);
+                if (firstAnswer.getMainAnswer() != null) {
+                    result.put(questionId, firstAnswer.getMainAnswer().getId_answer());
+                    log.debug("Restored SINGLE answer for question {}: {}",
+                            questionId, firstAnswer.getMainAnswer().getId_answer());
+                }
+
+            } else if ("TEXT".equals(questionType)) {
+                AttemptAnswer firstAnswer = questionAnswers.get(0);
+                if (firstAnswer.getText_answer() != null) {
+                    result.put(questionId, firstAnswer.getText_answer());
+                    log.debug("Restored TEXT answer for question {}: '{}'",
+                            questionId, firstAnswer.getText_answer());
+                }
+            }
+        }
+
+        log.info("Restored progress: {} questions with answers", result.size());
+        log.debug("Progress data: {}", result);
+
+        return ResponseEntity.ok(result);
     }
 }

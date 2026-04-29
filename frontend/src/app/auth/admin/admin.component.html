@@ -6,20 +6,52 @@
   <div class="admin-layout">
     <div class="users-panel">
       <h3>Пользователи</h3>
+
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Поиск по ФИО или email..."
+            [(ngModel)]="searchQuery"
+            (input)="onSearch()"
+          />
+          <button
+            *ngIf="searchQuery"
+            class="clear-search-btn"
+            (click)="clearSearch()"
+            title="Очистить поиск"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="search-info" *ngIf="searchQuery">
+          Найдено: {{ filteredUsers.length }} из {{ users.length }}
+        </div>
+      </div>
+
       <div class="users-list">
-        <div *ngFor="let user of users"
+        <div *ngFor="let user of filteredUsers"
              class="user-item"
              [class.selected]="selectedUser?.id_person === user.id_person"
              (click)="selectUser(user)">
-          <div class="user-name">{{ user.first_name }} {{ user.last_name }}</div>
+          <div class="user-name">
+            {{ user.last_name }} {{ user.first_name }}
+            <span *ngIf="user.surname">{{ user.surname }}</span>
+          </div>
           <div class="user-email">{{ user.email }}</div>
+        </div>
+
+        <div *ngIf="filteredUsers.length === 0 && searchQuery" class="no-results">
+          Пользователи не найдены
         </div>
       </div>
     </div>
 
     <div class="details-panel">
       <div *ngIf="selectedUser" class="attempts-section">
-        <h3>Попытки пользователя: {{ selectedUser.first_name }} {{ selectedUser.last_name }}</h3>
+        <h3>Попытки пользователя: {{ selectedUser.last_name }} {{ selectedUser.first_name }}</h3>
 
         <div *ngIf="attempts.length > 0; else noAttempts">
           <div *ngFor="let attempt of attempts"
@@ -27,10 +59,10 @@
                [class.selected]="selectedAttempt?.id_attempt === attempt.id_attempt"
                (click)="loadViolations(attempt)">
             <div class="attempt-info">
-              <span>Тест ID: {{ attempt.id_test }}</span>
-              <span>Статус: {{ attempt.status }}</span>
-              <span>Баллы: {{ attempt.score || 0 }}</span>
-              <span>Дата: {{ attempt.start_time | date:'medium' }}</span>
+              <span><strong>Тест:</strong> {{ attempt.testTitle || 'ID: ' + attempt.id_test }}</span>
+              <span><strong>Статус:</strong> {{ getStatusText(attempt.status) }}</span>
+              <span><strong>Баллы:</strong> {{ attempt.score || 0 }}</span>
+              <span><strong>Начало:</strong> {{ attempt.start_time | date:'dd.MM.yyyy HH:mm' }}</span>
             </div>
           </div>
         </div>
@@ -48,14 +80,16 @@
             <tr>
               <th>Тип нарушения</th>
               <th>Время</th>
-<!--              <th>Данные</th>-->
             </tr>
             </thead>
             <tbody>
             <tr *ngFor="let violation of violations">
-              <td>{{ violation.event_type }}</td>
-              <td>{{ violation.event_time | date:'medium' }}</td>
-<!--              <td>{{ violation.event_data | json }}</td>-->
+              <td>
+                <span [class]="getViolationClass(violation.event_type)">
+                  {{ getViolationText(violation.event_type) }}
+                </span>
+              </td>
+              <td>{{ violation.event_time | date:'dd.MM.yyyy HH:mm:ss' }}</td>
             </tr>
             </tbody>
           </table>
@@ -65,7 +99,7 @@
         </ng-template>
       </div>
 
-      <div *ngIf="!selectedUser" class="initial-state">
+      <div *ngIf="!selectedUser && !searchQuery" class="initial-state">
         <p>Выберите пользователя для просмотра его попыток и нарушений</p>
       </div>
     </div>

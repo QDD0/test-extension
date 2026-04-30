@@ -63,16 +63,27 @@ public class MonitoringService {
     }
 
     private String mapViolationType(String eventType) {
+        if (eventType == null) return "OTHER";
+
         return switch (eventType) {
-            case
-                 "screenshotAttempt",
+
+            case "tabSwitchWarning",
+                 "tabSwitch",
+                 "TAB_SWITCH" -> "TAB_SWITCH";
+
+            case "windowBlur",
+                 "WINDOW_BLUR" -> "WINDOW_BLUR";
+
+            case "copyAttempt",
+                 "COPY_ATTEMPT" -> "COPY_ATTEMPT";
+
+            case "screenshotAttempt",
                  "screenshotSuspicion",
-                 "screenshotPattern" -> "SCREENSHOT";
+                 "screenshotPattern",
+                 "screenRecordingAttempt" -> "SCREENSHOT";
 
             case "devToolsDetected",
-                 "devToolsViolation" -> "DEVTOOLS";
-
-            case "tabSwitchWarning" -> "TAB_SWITCH";
+                 "devToolsViolation" -> "APP_CHANGE";
 
             default -> "OTHER";
         };

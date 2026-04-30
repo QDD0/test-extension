@@ -18,6 +18,15 @@ export class AdminPanelComponent implements OnInit {
   attempts: any[] = [];
   violations: any[] = [];
 
+  violationsAnalysis = {
+    total: 0,
+    byType: {} as { [key: string]: number },
+    criticalCount: 0,
+    warningCount: 0,
+    frequentType: '',
+    frequentCount: 0
+  };
+
   selectedUser: any = null;
   selectedAttempt: any = null;
 
@@ -66,6 +75,7 @@ export class AdminPanelComponent implements OnInit {
     this.selectedUser = user;
     this.selectedAttempt = null;
     this.violations = [];
+    this.resetViolationsAnalysis();
 
     this.testService.getUserAttempts(user.id_person).subscribe({
       next: (data) => {
@@ -91,11 +101,85 @@ export class AdminPanelComponent implements OnInit {
       next: (data) => {
         console.log('Полученные данные о нарушениях:', data);
         this.violations = data;
+        this.analyzeViolations(data);
       },
       error: (err) => {
         console.error('Ошибка загрузки нарушений:', err);
       }
     });
+  }
+
+  analyzeViolations(violations: any[]): void {
+    this.resetViolationsAnalysis();
+
+    if (!violations || violations.length === 0) {
+      return;
+    }
+
+    this.violationsAnalysis.total = violations.length;
+
+    const typeCount: { [key: string]: number } = {
+      'TAB_SWITCH': 0,
+      'WINDOW_BLUR': 0,
+      'APP_CHANGE': 0,
+      'COPY_ATTEMPT': 0,
+      'SCREENSHOT': 0
+    };
+
+    violations.forEach(violation => {
+      const type = violation.event_type || violation.violationType;
+      console.log('Тип нарушения:', type, 'Объект:', violation);
+
+      if (type && typeCount.hasOwnProperty(type)) {
+        typeCount[type] = (typeCount[type] || 0) + 1;
+      } else if (type) {
+        typeCount[type] = (typeCount[type] || 0) + 1;
+      }
+
+      if (type === 'COPY_ATTEMPT' || type === 'SCREENSHOT' || type === 'APP_CHANGE') {
+        this.violationsAnalysis.criticalCount++;
+      }
+
+      if (type === 'TAB_SWITCH' || type === 'WINDOW_BLUR') {
+        this.violationsAnalysis.warningCount++;
+      }
+    });
+
+    const filteredTypeCount: { [key: string]: number } = {};
+    Object.keys(typeCount).forEach(key => {
+      if (typeCount[key] > 0) {
+        filteredTypeCount[key] = typeCount[key];
+      }
+    });
+
+    this.violationsAnalysis.byType = Object.keys(filteredTypeCount).length > 0 ? filteredTypeCount : typeCount;
+
+    let maxCount = 0;
+    let frequentType = '';
+
+    Object.entries(this.violationsAnalysis.byType).forEach(([type, count]) => {
+      if (count > maxCount) {
+        maxCount = count;
+        frequentType = type;
+      }
+    });
+
+    this.violationsAnalysis.frequentType = frequentType;
+    this.violationsAnalysis.frequentCount = maxCount;
+
+    console.log('Анализ нарушений:', this.violationsAnalysis);
+    console.log('byType:', this.violationsAnalysis.byType);
+  }
+
+  resetViolationsAnalysis(): void {
+    this.violationsAnalysis = {
+      total: 0,
+      byType: {},
+      criticalCount: 0,
+      warningCount: 0,
+      frequentType: '',
+      frequentCount: 0
+    };
   }
 
   exit() {
@@ -128,8 +212,31 @@ export class AdminPanelComponent implements OnInit {
       'WINDOW_BLUR': 'Уход из окна',
       'APP_CHANGE': 'Смена приложения',
       'COPY_ATTEMPT': 'Попытка копирования',
-      'SCREENSHOT': 'Скриншот'
+      'SCREENSHOT': 'Скриншот',
+      'copyAttempt': 'Попытка копирования',
+      'pasteAttempt': 'Попытка вставки',
+      'tabSwitchWarning': 'Переключение вкладки',
+      'window_lost_focus': 'Уход из окна',
+      'windowFocus': 'Возврат в окно',
+      'tabReturn': 'Возврат во вкладку',
+      'contextMenuAttempt': 'Вызов контекстного меню',
+      'screenshotPattern': 'Попытка скриншота',
+      'screenRecordingAttempt': 'Попытка записи экрана',
+      'screenshotSuspicion': 'Подозрение на скриншот',
+      'devToolsDetected': 'Инструменты разработчика',
+      'devToolsViolation': 'Нарушение: DevTools'
     };
     return types[eventType] || eventType;
+  }
+
+  getViolationCountText(count: number): string {
+    if (count === 0) return 'раз';
+    if (count === 1) return 'раз';
+    if (count >= 2 && count <= 4) return 'раза';
+    return 'раз';
+  }
+
+  getViolationTypes(): string[] {
+    return Object.keys(this.violationsAnalysis.byType);
   }
 }

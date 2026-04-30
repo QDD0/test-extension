@@ -46,7 +46,7 @@
         windowBlurCount = 0;
         screenshotSuspicionCount = 0;
 
-        notifyAngular('extensionReady');
+        // notifyAngular('extensionReady');
         startDevToolsCheck();
     }
 

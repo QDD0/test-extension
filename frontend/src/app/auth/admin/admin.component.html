@@ -76,13 +76,50 @@
       <div *ngIf="selectedAttempt" class="violations-section">
         <h3>Нарушения для попытки #{{ selectedAttempt.id_attempt }}</h3>
 
+        <div *ngIf="violations.length > 0" class="violations-analysis">
+          <div class="analysis-card">
+            <div class="analysis-header">Анализ нарушений</div>
+            <div class="analysis-body">
+              <div class="analysis-total">
+                Всего нарушений: <strong>{{ violationsAnalysis.total }}</strong>
+              </div>
+
+              <div *ngIf="violationsAnalysis.frequentType" class="analysis-frequent">
+                Частые: <strong>{{ getViolationText(violationsAnalysis.frequentType) }}</strong>
+                ({{ violationsAnalysis.frequentCount }} {{ getViolationCountText(violationsAnalysis.frequentCount) }})
+              </div>
+
+              <div *ngIf="violationsAnalysis.criticalCount > 0" class="analysis-critical">
+                Критические: <strong>{{ violationsAnalysis.criticalCount }}</strong>
+                {{ getViolationCountText(violationsAnalysis.criticalCount) }}
+              </div>
+
+              <div *ngIf="violationsAnalysis.warningCount > 0" class="analysis-warning">
+                Предупреждения: <strong>{{ violationsAnalysis.warningCount }}</strong>
+                {{ getViolationCountText(violationsAnalysis.warningCount) }}
+              </div>
+
+              <div class="analysis-details" *ngIf="getViolationTypes().length > 0">
+                <div class="analysis-detail-header">Детализация:</div>
+                <div *ngFor="let type of getViolationTypes()" class="analysis-detail-item">
+                  {{ getViolationText(type) }}: {{ violationsAnalysis.byType[type] || 0 }}
+                  {{ getViolationCountText(violationsAnalysis.byType[type] || 0) }}
+                </div>
+              </div>
+              <div class="analysis-details" *ngIf="getViolationTypes().length === 0">
+                <div class="analysis-detail-header">Детализация:</div>
+                <div class="analysis-detail-item">Нет данных о нарушениях</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div *ngIf="violations.length > 0; else noViolations">
           <table class="violations-table">
             <thead>
             <tr>
               <th>Тип нарушения</th>
               <th>Время</th>
-<!--              <th>Анализ действий</th>-->
             </tr>
             </thead>
             <tbody>

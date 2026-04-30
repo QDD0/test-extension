@@ -1,5 +1,6 @@
 <button (click)="logout()">Выйти</button>
-<hr>
+<button *ngIf="isAdmin" (click)="goToAdmin()">Панель управления
+</button>
 <table class="tests-table">
   <thead>
   <tr>

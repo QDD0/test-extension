@@ -6,6 +6,8 @@ import lombok.Data;
 import org.example.testextension.enums.TypeStatus;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -24,6 +26,12 @@ public class TestAttempt {
     @Column(name = "score")
     private Integer score;
 
+    @Column(name = "percentage")
+    private Integer percentage;
+
+    @Column(name = "total_points")
+    private Integer total_points;
+
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private TypeStatus status;
@@ -37,4 +45,8 @@ public class TestAttempt {
     @JsonIgnore
     @JoinColumn(name = "id_test")
     private Test testAttempt;
+
+    @OneToMany(mappedBy = "testAttempt", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<ActivityEvent> activityEvents = new ArrayList<>();
 }

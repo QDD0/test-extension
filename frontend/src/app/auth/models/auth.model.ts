@@ -53,6 +53,7 @@ export interface TestAttempt {
   end_time?: Date;
   score?: number;
   status?: TypeStatus;
+  testTitle?: string;
 }
 
 export interface AttemptAnswer {
@@ -77,4 +78,12 @@ export interface TestResult {
   totalPoints: number;
   percentage: number;
   questions: QuestionResult[];
+}
+
+export interface ActivityEvent {
+  id_event: number;
+  id_attempt: number;
+  event_type: string;
+  event_time: Date;
+  event_data: any;
 }

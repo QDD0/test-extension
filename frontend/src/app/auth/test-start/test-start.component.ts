@@ -88,7 +88,16 @@ export class TestStartComponent implements OnInit, OnDestroy {
     window.removeEventListener('testViolation', this.boundHandleViolation);
   }
 
+  private isStarting = false;
+
   startAttempt() {
+    if (this.isStarting) {
+      console.warn('Attempt already starting, skipping...');
+      return;
+    }
+
+    this.isStarting = true;
+
     this.resetAllState();
 
     this.testService.startTest(this.testId).subscribe({
@@ -100,10 +109,12 @@ export class TestStartComponent implements OnInit, OnDestroy {
 
         console.log('New attempt started with ID:', this.attemptId);
 
-        // Загружаем информацию о тесте и вопросы
         this.loadTestInfo();
       },
-      error: (err) => console.error('Error starting attempt:', err)
+      error: (err) => {
+        console.error('Error starting attempt:', err);
+        this.isStarting = false;
+      }
     });
   }
 
@@ -444,23 +455,29 @@ export class TestStartComponent implements OnInit, OnDestroy {
   handleViolation(event: any) {
     this.ngZone.run(() => {
       const { reason, count } = event.detail;
+
       console.log(`Violation: ${reason}`, event.detail);
+
+      if (this.attemptId) {
+        this.testService.sendViolation({
+          attemptId: this.attemptId,
+          eventType: reason,
+          eventData: event.detail
+        }).subscribe({
+          next: () => console.log('Violation saved'),
+          error: err => console.error('Violation error', err)
+        });
+      }
 
       switch(reason) {
         case 'tabSwitchWarning':
           this.tabSwitchCount = count || 1;
-          console.warn(`Tab switch warning #${this.tabSwitchCount}`);
           break;
 
         case 'tabSwitchViolation':
         case 'devToolsViolation':
         case 'devToolsDetected':
-          console.error(`Test finished due to: ${reason}`);
           this.finishTest();
-          break;
-
-        case 'extensionReady':
-          console.log('Extension is ready and protection is active');
           break;
       }
     });
@@ -476,13 +493,11 @@ export class TestStartComponent implements OnInit, OnDestroy {
       clearTimeout(this.autoSaveTimeout);
     }
 
-    this.forceSave();
-
     console.log('Finishing test with attemptId:', this.attemptId);
     console.log('Final answers:', this.userAnswers);
 
     this.testService.submitTest({
-      testId: this.testId,
+      attemptId: this.attemptId,
       answers: this.userAnswers
     }).subscribe({
       next: () => {

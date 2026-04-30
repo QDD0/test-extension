@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { NgFor, NgIf, NgClass, DatePipe, JsonPipe } from '@angular/common';
+import { NgFor, NgIf, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TestService } from '../services/test.service';
 import { Router } from '@angular/router';
@@ -9,7 +9,7 @@ import { Router } from '@angular/router';
   standalone: true,
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css'],
-  imports: [NgFor, NgIf, NgClass, DatePipe, JsonPipe, FormsModule]
+  imports: [NgFor, NgIf, DatePipe, FormsModule]
 })
 export class AdminPanelComponent implements OnInit {
 
@@ -35,7 +35,7 @@ export class AdminPanelComponent implements OnInit {
   loadUsers() {
     this.testService.getUsers().subscribe(data => {
       this.users = data;
-      this.filteredUsers = data; // Изначально показываем всех
+      this.filteredUsers = data;
     });
   }
 

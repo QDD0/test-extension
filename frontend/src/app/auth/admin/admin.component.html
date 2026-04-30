@@ -1,4 +1,4 @@
-<button class="exit-button" (click)="exit()">Выйти</button>
+<button class="exit-button" (click)="exit()">Вернуться назад</button>
 
 <div class="admin-container">
   <h2>Панель администратора</h2>
@@ -62,7 +62,9 @@
               <span><strong>Тест:</strong> {{ attempt.testTitle || 'ID: ' + attempt.id_test }}</span>
               <span><strong>Статус:</strong> {{ getStatusText(attempt.status) }}</span>
               <span><strong>Баллы:</strong> {{ attempt.score || 0 }}</span>
+              <span><strong>Проценты:</strong> {{ attempt.percentage || 0 }}%</span>
               <span><strong>Начало:</strong> {{ attempt.start_time | date:'dd.MM.yyyy HH:mm' }}</span>
+              <span><strong>Конец:</strong> {{ attempt.end_time | date:'dd.MM.yyyy HH:mm' }}</span>
             </div>
           </div>
         </div>
@@ -80,6 +82,7 @@
             <tr>
               <th>Тип нарушения</th>
               <th>Время</th>
+<!--              <th>Анализ действий</th>-->
             </tr>
             </thead>
             <tbody>

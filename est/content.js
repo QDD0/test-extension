@@ -7,6 +7,16 @@
     let lastBlurTime = 0;
     let screenshotSuspicionCount = 0;
 
+    let mouseData = {
+        lastX: 0,
+        lastY: 0,
+        lastMoveTime: Date.now(),
+        moveCount: 0,
+        rapidMoves: 0,
+        outsideWindowCount: 0,
+        clicks: 0
+    };
+
     window.__testProtectionAPI = {
         version: '1.1',
         isActive: () => protectionActive,
@@ -46,7 +56,6 @@
         windowBlurCount = 0;
         screenshotSuspicionCount = 0;
 
-        // notifyAngular('extensionReady');
         startDevToolsCheck();
     }
 
@@ -255,6 +264,58 @@
         }, 1000);
     }
 
+    function handleMouseMove(e) {
+        if (!protectionActive) return;
+
+        const now = Date.now();
+
+        const deltaX = Math.abs(e.clientX - mouseData.lastX);
+        const deltaY = Math.abs(e.clientY - mouseData.lastY);
+
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        const timeDiff = now - mouseData.lastMoveTime;
+
+        mouseData.moveCount++;
+
+        if (distance > 500 && timeDiff < 50) {
+            mouseData.rapidMoves++;
+
+            notifyAngular('rapidMouseMovement', {
+                distance,
+                timeDiff,
+                rapidMoves: mouseData.rapidMoves
+            });
+        }
+
+        mouseData.lastX = e.clientX;
+        mouseData.lastY = e.clientY;
+        mouseData.lastMoveTime = now;
+    }
+
+    function handleMouseLeave() {
+        if (!protectionActive) return;
+
+        mouseData.outsideWindowCount++;
+
+        notifyAngular('mouseLeftWindow', {
+            count: mouseData.outsideWindowCount
+        });
+    }
+
+    setInterval(() => {
+        if (!protectionActive) return;
+
+        const idleTime = Date.now() - mouseData.lastMoveTime;
+
+        if (idleTime > 60000) {
+            notifyAngular('mouseIdle', {
+                idleMs: idleTime
+            });
+        }
+
+    }, 10000);
+
     detectMediaDevices();
 
     window.addEventListener('blur', handleWindowBlur);
@@ -266,6 +327,8 @@
     document.addEventListener('paste', handleCopyCutPaste);
     document.addEventListener('contextmenu', handleContextMenu);
     document.addEventListener('dragstart', handleDragStart);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseleave', handleMouseLeave);
 
     setInterval(() => {
         if (isTestPage()) {

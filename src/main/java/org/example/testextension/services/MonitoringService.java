@@ -58,7 +58,12 @@ public class MonitoringService {
                 "screenshotPattern",
                 "screenRecordingAttempt",
                 "devToolsDetected",
-                "devToolsViolation"
+                "devToolsViolation",
+                "rapidMouseMovement",
+                "mouseLeftWindow",
+                "rapidTextInsertion",
+                "abnormalTypingSpeed"
+
         ).contains(eventType);
     }
 
@@ -85,6 +90,12 @@ public class MonitoringService {
             case "devToolsDetected",
                  "devToolsViolation" -> "APP_CHANGE";
 
+            case "rapidMouseMovement" -> "SUSPICIOUS_MOUSE";
+
+            case "mouseLeftWindow" -> "WINDOW_EXIT";
+
+            case "rapidTextInsertion" -> "TEXT_INSERTION";
+
             default -> "OTHER";
         };
     }
@@ -96,7 +107,12 @@ public class MonitoringService {
             case "screenshotSuspicion", "screenshotPattern" -> 7;
             case "devToolsDetected", "devToolsViolation" -> 10;
             case "tabSwitchWarning" -> 3;
+            case "rapidMouseMovement" -> 6;
+            case "mouseLeftWindow" -> 5;
+            case "rapidTextInsertion" -> 6;
+            case "abnormalTypingSpeed" -> 7;
             default -> 5;
+
         };
     }
 }

@@ -260,10 +260,6 @@ h3 {
   font-size: 13px;
 }
 
-
-
-
-/* Стили для анализа нарушений */
 .violations-analysis {
   margin-bottom: 20px;
 }
@@ -341,4 +337,35 @@ h3 {
   background: #f1f3f5;
   border-radius: 4px;
   font-size: 14px;
+}
+
+.controls-panel {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.controls-panel select {
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.pagination button {
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.pagination button.active {
+  font-weight: bold;
+  transform: scale(1.1);
 }

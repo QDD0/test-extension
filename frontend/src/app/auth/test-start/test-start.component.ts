@@ -23,6 +23,10 @@ export class TestStartComponent implements OnInit, OnDestroy {
   remainingTime: number = 0;
   timer: any;
 
+  private extensionAliveTimer: any;
+  private lastExtensionPing: number = Date.now();
+  private extensionLost = false;
+
   userAnswers: any = {};
   private autoSaveTimeout: any;
 
@@ -40,6 +44,7 @@ export class TestStartComponent implements OnInit, OnDestroy {
     console.log('TestStartComponent initialized');
 
     this.testId = Number(this.route.snapshot.paramMap.get('id'));
+    this.startExtensionMonitoring();
 
     const savedAttemptId = localStorage.getItem('attemptId');
     const savedTestId = localStorage.getItem('testId');
@@ -70,6 +75,38 @@ export class TestStartComponent implements OnInit, OnDestroy {
     this.checkExtensionStatus();
   }
 
+  startExtensionMonitoring() {
+    this.extensionAliveTimer = setInterval(() => {
+
+      const win = window as any;
+
+      if (win.__testProtectionAPI?.lastPing) {
+        this.lastExtensionPing = win.__testProtectionAPI.lastPing;
+      }
+
+      const diff = Date.now() - this.lastExtensionPing;
+
+      if (diff > 10000 && !this.extensionLost) {
+        this.extensionLost = true;
+
+        console.warn('EXTENSION LOST DETECTED');
+
+        this.ngZone.run(() => {
+          this.testService.sendViolation({
+            attemptId: this.attemptId,
+            eventType: 'extensionLost',
+            eventData: {
+              reason: 'Extension disabled or stopped responding',
+              time: Date.now()
+            }
+          }).subscribe();
+
+          this.finishTest();
+        });
+      }
+    }, 3000);
+  }
+
   ngOnDestroy(): void {
     console.log('TestStartComponent destroyed');
 
@@ -77,6 +114,10 @@ export class TestStartComponent implements OnInit, OnDestroy {
 
     if (this.autoSaveTimeout) {
       clearTimeout(this.autoSaveTimeout);
+    }
+
+    if (this.extensionAliveTimer) {
+      clearInterval(this.extensionAliveTimer);
     }
 
     if (!this.isFinished && this.attemptId) {

@@ -1,4 +1,4 @@
-<button class="exit-button" (click)="exit()">Выйти</button>
+<button class="exit-button" (click)="exit()">Вернуться назад</button>
 
 <div class="admin-container">
   <h2>Панель администратора</h2>
@@ -6,41 +6,174 @@
   <div class="admin-layout">
     <div class="users-panel">
       <h3>Пользователи</h3>
+
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Поиск по ФИО или email..."
+            [(ngModel)]="searchQuery"
+            (input)="onSearch()"
+          />
+
+          <button
+            *ngIf="searchQuery"
+            class="clear-search-btn"
+            (click)="clearSearch()"
+            title="Очистить поиск"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="search-info" *ngIf="searchQuery">
+          Найдено: {{ filteredUsers.length }} из {{ users.length }}
+        </div>
+      </div>
+
       <div class="users-list">
-        <div *ngFor="let user of users"
+        <div *ngFor="let user of paginatedUsers"
              class="user-item"
              [class.selected]="selectedUser?.id_person === user.id_person"
              (click)="selectUser(user)">
-          <div class="user-name">{{ user.first_name }} {{ user.last_name }}</div>
+
+          <div class="user-name">
+            {{ user.last_name }} {{ user.first_name }}
+            <span *ngIf="user.surname">{{ user.surname }}</span>
+          </div>
+
           <div class="user-email">{{ user.email }}</div>
         </div>
+      </div>
+
+      <div class="pagination">
+        <button
+          *ngFor="let page of [].constructor(totalUsersPages); let i = index"
+          (click)="changeUsersPage(i + 1)"
+          [class.active]="currentUsersPage === i + 1">
+          {{ i + 1 }}
+        </button>
       </div>
     </div>
 
     <div class="details-panel">
       <div *ngIf="selectedUser" class="attempts-section">
-        <h3>Попытки пользователя: {{ selectedUser.first_name }} {{ selectedUser.last_name }}</h3>
 
-        <div *ngIf="attempts.length > 0; else noAttempts">
-          <div *ngFor="let attempt of attempts"
+        <h3>
+          Попытки пользователя:
+          {{ selectedUser.last_name }}
+          {{ selectedUser.first_name }}
+        </h3>
+
+        <div class="controls-panel">
+
+          <label>Сортировка:</label>
+          <select [(ngModel)]="sortAttempts" (change)="sortAttemptsList()">
+            <option value="newest">Сначала новые</option>
+            <option value="oldest">Сначала старые</option>
+            <option value="score">По баллам</option>
+          </select>
+        </div>
+
+        <div *ngIf="paginatedAttempts.length > 0; else noAttempts">
+          <div *ngFor="let attempt of paginatedAttempts"
                class="attempt-item"
                [class.selected]="selectedAttempt?.id_attempt === attempt.id_attempt"
                (click)="loadViolations(attempt)">
+
             <div class="attempt-info">
-              <span>Тест ID: {{ attempt.id_test }}</span>
-              <span>Статус: {{ attempt.status }}</span>
-              <span>Баллы: {{ attempt.score || 0 }}</span>
-              <span>Дата: {{ attempt.start_time | date:'medium' }}</span>
+              <span><strong>Тест:</strong> {{ attempt.testTitle || 'ID: ' + attempt.id_test }}</span>
+              <span><strong>Статус:</strong> {{ getStatusText(attempt.status) }}</span>
+              <span><strong>Баллы:</strong> {{ attempt.score || 0 }}</span>
+              <span><strong>Проценты:</strong> {{ attempt.percentage || 0 }}%</span>
+              <span><strong>Начало:</strong> {{ attempt.start_time | date:'dd.MM.yyyy HH:mm' }}</span>
+              <span><strong>Конец:</strong> {{ attempt.end_time | date:'dd.MM.yyyy HH:mm' }}</span>
             </div>
           </div>
         </div>
+
         <ng-template #noAttempts>
           <p class="no-data">Нет попыток для отображения</p>
         </ng-template>
+
+        <div class="pagination">
+          <button
+            *ngFor="let page of [].constructor(totalAttemptsPages); let i = index"
+            (click)="changeAttemptsPage(i + 1)"
+            [class.active]="currentAttemptsPage === i + 1">
+            {{ i + 1 }}
+          </button>
+        </div>
       </div>
 
       <div *ngIf="selectedAttempt" class="violations-section">
-        <h3>Нарушения для попытки #{{ selectedAttempt.id_attempt }}</h3>
+
+        <h3>
+          Нарушения для попытки #{{ selectedAttempt.id_attempt }}
+        </h3>
+
+        <div *ngIf="violations.length > 0" class="violations-analysis">
+
+          <div class="analysis-card">
+            <div class="analysis-header">
+              Анализ нарушений
+            </div>
+
+            <div class="analysis-body">
+              <div class="analysis-total">
+                Всего нарушений:
+                <strong>{{ violationsAnalysis.total }}</strong>
+              </div>
+
+              <div *ngIf="violationsAnalysis.frequentType"
+                   class="analysis-frequent">
+                Частые:
+                <strong>
+                  {{ getViolationText(violationsAnalysis.frequentType) }}
+                </strong>
+
+                ({{ violationsAnalysis.frequentCount }}
+                {{ getViolationCountText(violationsAnalysis.frequentCount) }})
+              </div>
+
+              <div *ngIf="violationsAnalysis.criticalCount > 0"
+                   class="analysis-critical">
+                Критические:
+                <strong>{{ violationsAnalysis.criticalCount }}</strong>
+                {{ getViolationCountText(violationsAnalysis.criticalCount) }}
+              </div>
+
+              <div *ngIf="violationsAnalysis.warningCount > 0"
+                   class="analysis-warning">
+                Предупреждения:
+                <strong>{{ violationsAnalysis.warningCount }}</strong>
+                {{ getViolationCountText(violationsAnalysis.warningCount) }}
+              </div>
+
+              <div class="analysis-details"
+                   *ngIf="getViolationTypes().length > 0">
+                <div class="analysis-detail-header">
+                  Детализация:
+                </div>
+
+                <div *ngFor="let type of getViolationTypes()"
+                     class="analysis-detail-item">
+                  {{ getViolationText(type) }}:
+                  {{ violationsAnalysis.byType[type] || 0 }}
+                  {{ getViolationCountText(violationsAnalysis.byType[type] || 0) }}
+                </div>
+              </div>
+
+              <div class="analysis-details"
+                   *ngIf="getViolationTypes().length === 0">
+                <div class="analysis-detail-item">
+                  Нет данных о нарушениях
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div *ngIf="violations.length > 0; else noViolations">
           <table class="violations-table">
@@ -48,23 +181,37 @@
             <tr>
               <th>Тип нарушения</th>
               <th>Время</th>
-<!--              <th>Данные</th>-->
             </tr>
             </thead>
+
             <tbody>
-            <tr *ngFor="let violation of violations">
-              <td>{{ violation.event_type }}</td>
-              <td>{{ violation.event_time | date:'medium' }}</td>
-<!--              <td>{{ violation.event_data | json }}</td>-->
+            <tr *ngFor="let violation of paginatedViolations">
+              <td>
+            <span [class]="getViolationClass(violation.event_type)">
+              {{ getViolationText(violation.event_type) }}
+            </span>
+              </td>
+              <td>
+                {{ violation.event_time | date:'dd.MM.yyyy HH:mm:ss' }}
+              </td>
             </tr>
             </tbody>
           </table>
+
+          <div class="pagination">
+            <button
+              *ngFor="let page of [].constructor(totalViolationsPages); let i = index"
+              (click)="changeViolationsPage(i + 1)"
+              [class.active]="currentViolationsPage === i + 1">
+              {{ i + 1 }}
+            </button>
+          </div>
         </div>
+
         <ng-template #noViolations>
           <p class="no-data">Нет нарушений для отображения</p>
         </ng-template>
       </div>
-
       <div *ngIf="!selectedUser" class="initial-state">
         <p>Выберите пользователя для просмотра его попыток и нарушений</p>
       </div>

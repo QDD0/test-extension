@@ -1,5 +1,6 @@
 package org.example.testextension.repositories;
 
+import org.example.testextension.dto.TestAttemptProjection;
 import org.example.testextension.enums.TypeStatus;
 import org.example.testextension.models.TestAttempt;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface TestAttemptRepository extends JpaRepository<TestAttempt, Long> {
@@ -19,6 +19,16 @@ public interface TestAttemptRepository extends JpaRepository<TestAttempt, Long> 
             @Param("personId") Long personId,
             @Param("status") TypeStatus status);
 
-    @Query("SELECT ta FROM TestAttempt ta WHERE ta.personAttempt.id_person = :userId")
-    List<TestAttempt> findAttemptsByUserId(@Param("userId") Long userId);
+    @Query("SELECT ta.id_attempt as id_attempt, " +
+            "ta.testAttempt.id_test as id_test, " +
+            "ta.testAttempt.title as testTitle, " +
+            "ta.start_time as start_time, " +
+            "ta.end_time as end_time, " +
+            "ta.score as score, " +
+            "ta.percentage as percentage, " +
+            "ta.total_points as total_points, " +
+            "ta.status as status " +
+            "FROM TestAttempt ta " +
+            "WHERE ta.personAttempt.id_person = :userId")
+    List<TestAttemptProjection> findAttemptsByUserId(@Param("userId") Long userId);
 }

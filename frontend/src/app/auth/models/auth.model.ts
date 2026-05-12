@@ -53,6 +53,7 @@ export interface TestAttempt {
   end_time?: Date;
   score?: number;
   status?: TypeStatus;
+  testTitle?: string;
 }
 
 export interface AttemptAnswer {

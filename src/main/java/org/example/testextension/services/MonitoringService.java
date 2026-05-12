@@ -58,21 +58,46 @@ public class MonitoringService {
                 "screenshotPattern",
                 "screenRecordingAttempt",
                 "devToolsDetected",
-                "devToolsViolation"
+                "devToolsViolation",
+                "rapidMouseMovement",
+                "mouseLeftWindow",
+                "rapidTextInsertion",
+                "extensionLost",
+                "abnormalTypingSpeed"
+
         ).contains(eventType);
     }
 
     private String mapViolationType(String eventType) {
+        if (eventType == null) return "OTHER";
+
         return switch (eventType) {
-            case
-                 "screenshotAttempt",
+
+            case "tabSwitchWarning",
+                 "tabSwitch",
+                 "TAB_SWITCH" -> "TAB_SWITCH";
+
+            case "windowBlur",
+                 "WINDOW_BLUR" -> "WINDOW_BLUR";
+
+            case "copyAttempt",
+                 "COPY_ATTEMPT" -> "COPY_ATTEMPT";
+
+            case "screenshotAttempt",
                  "screenshotSuspicion",
-                 "screenshotPattern" -> "SCREENSHOT";
+                 "screenshotPattern",
+                 "screenRecordingAttempt" -> "SCREENSHOT";
 
             case "devToolsDetected",
-                 "devToolsViolation" -> "DEVTOOLS";
+                 "devToolsViolation" -> "APP_CHANGE";
 
-            case "tabSwitchWarning" -> "TAB_SWITCH";
+            case "rapidMouseMovement" -> "SUSPICIOUS_MOUSE";
+
+            case "mouseLeftWindow" -> "WINDOW_EXIT";
+
+            case "rapidTextInsertion" -> "TEXT_INSERTION";
+
+            case "extensionLost" -> "MONITORING_LOST";
 
             default -> "OTHER";
         };
@@ -85,7 +110,13 @@ public class MonitoringService {
             case "screenshotSuspicion", "screenshotPattern" -> 7;
             case "devToolsDetected", "devToolsViolation" -> 10;
             case "tabSwitchWarning" -> 3;
+            case "rapidMouseMovement" -> 6;
+            case "mouseLeftWindow" -> 5;
+            case "rapidTextInsertion" -> 6;
+            case "abnormalTypingSpeed" -> 7;
+            case "extensionLost" -> 10;
             default -> 5;
+
         };
     }
 }

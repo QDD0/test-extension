@@ -26,6 +26,12 @@ public class TestAttempt {
     @Column(name = "score")
     private Integer score;
 
+    @Column(name = "percentage")
+    private Integer percentage;
+
+    @Column(name = "total_points")
+    private Integer total_points;
+
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private TypeStatus status;

@@ -304,19 +304,22 @@
     }
 
     setInterval(() => {
-        if (!protectionActive) return;
-
-        const idleTime = Date.now() - mouseData.lastMoveTime;
-
-        if (idleTime > 60000) {
-            notifyAngular('mouseIdle', {
-                idleMs: idleTime
-            });
+        if (isTestPage() && !protectionActive) {
+            activateProtection();
         }
 
-    }, 10000);
+        if (!isTestPage() && protectionActive) {
+            deactivateProtection();
+        }
+    }, 1000);
 
     detectMediaDevices();
+
+    setInterval(() => {
+        if (!protectionActive) return;
+        window.__testProtectionAPI = window.__testProtectionAPI || {};
+        window.__testProtectionAPI.lastPing = Date.now();
+    }, 2000);
 
     window.addEventListener('blur', handleWindowBlur);
     window.addEventListener('focus', handleWindowFocus);

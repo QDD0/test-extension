@@ -62,6 +62,7 @@ public class MonitoringService {
                 "rapidMouseMovement",
                 "mouseLeftWindow",
                 "rapidTextInsertion",
+                "extensionLost",
                 "abnormalTypingSpeed"
 
         ).contains(eventType);
@@ -96,6 +97,8 @@ public class MonitoringService {
 
             case "rapidTextInsertion" -> "TEXT_INSERTION";
 
+            case "extensionLost" -> "MONITORING_LOST";
+
             default -> "OTHER";
         };
     }
@@ -111,6 +114,7 @@ public class MonitoringService {
             case "mouseLeftWindow" -> 5;
             case "rapidTextInsertion" -> 6;
             case "abnormalTypingSpeed" -> 7;
+            case "extensionLost" -> 10;
             default -> 5;
 
         };

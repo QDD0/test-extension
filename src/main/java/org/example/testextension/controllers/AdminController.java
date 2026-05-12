@@ -1,5 +1,6 @@
 package org.example.testextension.controllers;
 
+import org.example.testextension.dto.TestAttemptProjection;
 import org.example.testextension.models.*;
 import org.example.testextension.repositories.*;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +36,7 @@ public class AdminController {
             return ResponseEntity.notFound().build();
         }
 
-        List<TestAttempt> attempts = attemptRepository.findAttemptsByUserId(userId);
+        List<TestAttemptProjection> attempts = attemptRepository.findAttemptsByUserId(userId);
         return ResponseEntity.ok(attempts);
     }
 

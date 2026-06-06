@@ -325,4 +325,30 @@ export class AdminPanelComponent implements OnInit {
   getViolationTypes(): string[] {
     return Object.keys(this.violationsAnalysis.byType);
   }
+
+  deleteUser(user: any, event: Event) {
+    event.stopPropagation();
+
+    console.log('CLICK USER:', user);
+
+    if (!confirm(`Удалить ${user.first_name}?`)) {
+      return;
+    }
+
+    this.testService.deleteUser(user.id_person).subscribe({
+      next: () => {
+        this.users = this.users.filter(u => u.id_person !== user.id_person);
+        this.filteredUsers = this.filteredUsers.filter(u => u.id_person !== user.id_person);
+
+        if (this.selectedUser?.id_person === user.id_person) {
+          this.selectedUser = null;
+          this.attempts = [];
+          this.violations = [];
+        }
+      },
+      error: (err) => {
+        console.error('DELETE ERROR:', err);
+      }
+    });
+  }
 }

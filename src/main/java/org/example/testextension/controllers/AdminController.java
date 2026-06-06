@@ -49,4 +49,13 @@ public class AdminController {
         List<ActivityEvent> events = activityEventRepository.findEventsByAttemptId(attemptId);
         return ResponseEntity.ok(events);
     }
+
+    @DeleteMapping("/user/{userId}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
+        if (!personRepository.existsById(userId)) {
+            return ResponseEntity.notFound().build();
+        }
+        personRepository.deleteById(userId);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -44,6 +44,11 @@
           </div>
 
           <div class="user-email">{{ user.email }}</div>
+
+          <button class="delete-btn"
+                  (click)="deleteUser(user, $event)">
+            Удалить
+          </button>
         </div>
       </div>
 

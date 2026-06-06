@@ -48,6 +48,6 @@ public class Person {
     @JsonIgnore
     private List<Test> tests;
 
-    @OneToMany(mappedBy = "personAttempt", fetch = FetchType.EAGER)
-    private List<TestAttempt> testAttempts;
+    @OneToMany(mappedBy = "personAttempt", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TestAttempt> attempts;
 }

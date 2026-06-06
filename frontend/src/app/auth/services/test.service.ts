@@ -65,4 +65,9 @@ export class TestService {
     return this.http.get<ActivityEvent[]>(`${this.apiUrl}/admin/attempt/${attemptId}/events`, { headers: this.getAuthHeaders() }
     );
   }
+
+  deleteUser(userId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/admin/user/${userId}`, { headers: this.getAuthHeaders() }
+    );
+  }
 }

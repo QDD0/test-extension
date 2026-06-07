@@ -1,5 +1,5 @@
 <div class="login-container">
-  <h2>Login</h2>
+  <h2>Вход</h2>
 
   <div *ngIf="errorMessage" class="error-message">
     {{ errorMessage }}
@@ -7,7 +7,7 @@
 
   <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
     <div class="form-group">
-      <label for="email">Email</label>
+      <label for="email">Почта</label>
       <input
         type="email"
         id="email"
@@ -20,12 +20,12 @@
         [class.is-invalid]="email.invalid && email.touched"
       >
       <div *ngIf="email.invalid && email.touched" class="invalid-feedback">
-        Valid email is required
+        Требуется действительный адрес электронной почты
       </div>
     </div>
 
     <div class="form-group">
-      <label for="password">Password</label>
+      <label for="password">Пароль</label>
       <input
         type="password"
         id="password"
@@ -38,7 +38,7 @@
         [class.is-invalid]="password.invalid && password.touched"
       >
       <div *ngIf="password.invalid && password.touched" class="invalid-feedback">
-        Password must be at least 6 characters
+        Пароль должен состоять как минимум из 6 символов
       </div>
     </div>
 
@@ -47,7 +47,12 @@
       [disabled]="loginForm.invalid"
       class="btn btn-primary"
     >
-      Login
+      Войти
     </button>
+
+    <p class="register-link">
+      Нет аккаунта?
+      <a routerLink="/register">Создать</a>
+    </p>
   </form>
 </div>

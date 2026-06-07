@@ -1,10 +1,10 @@
 <div class="register-container">
-  <h2>Create Account</h2>
+  <h2>Создать аккаунт</h2>
 
   <div *ngIf="successMessage" class="alert alert-success">
     {{ successMessage }}
     <br>
-    Redirecting to login...
+    Переадресация во вход...
   </div>
 
   <div *ngIf="errorMessage" class="alert alert-danger">
@@ -13,7 +13,7 @@
 
   <form (ngSubmit)="onSubmit()" #registerForm="ngForm" *ngIf="!successMessage">
     <div class="form-group">
-      <label for="first_name">First Name *</label>
+      <label for="first_name">Имя *</label>
       <input
         type="text"
         id="first_name"
@@ -25,12 +25,12 @@
         [class.is-invalid]="firstName.invalid && firstName.touched"
       >
       <div *ngIf="firstName.invalid && firstName.touched" class="invalid-feedback">
-        First name is required (min 2 characters)
+        Обязательно укажите имя
       </div>
     </div>
 
     <div class="form-group">
-      <label for="last_name">Last Name *</label>
+      <label for="last_name">Отчество *</label>
       <input
         type="text"
         id="last_name"
@@ -42,12 +42,12 @@
         [class.is-invalid]="lastName.invalid && lastName.touched"
       >
       <div *ngIf="lastName.invalid && lastName.touched" class="invalid-feedback">
-        Last name is required (min 2 characters)
+        Обязательно укажите отчество
       </div>
     </div>
 
     <div class="form-group">
-      <label for="surname">Surname (Optional)</label>
+      <label for="surname">Фамилия (Необязательно)</label>
       <input
         type="text"
         id="surname"
@@ -58,7 +58,7 @@
     </div>
 
     <div class="form-group">
-      <label for="email">Email *</label>
+      <label for="email">Почта *</label>
       <input
         type="email"
         id="email"
@@ -70,12 +70,12 @@
         [class.is-invalid]="email.invalid && email.touched"
       >
       <div *ngIf="email.invalid && email.touched" class="invalid-feedback">
-        Valid email is required
+        Требуется действительный адрес электронной почты
       </div>
     </div>
 
     <div class="form-group">
-      <label for="password">Password *</label>
+      <label for="password">Пароль *</label>
       <input
         type="password"
         id="password"
@@ -87,12 +87,12 @@
         [class.is-invalid]="password.invalid && password.touched"
       >
       <div *ngIf="password.invalid && password.touched" class="invalid-feedback">
-        Password must be at least 6 characters
+        Пароль должен состоять как минимум из 6 символов
       </div>
     </div>
 
     <div class="form-group">
-      <label for="confirmPassword">Confirm Password *</label>
+      <label for="confirmPassword">Подтверждение пароля *</label>
       <input
         type="password"
         id="confirmPassword"
@@ -103,7 +103,7 @@
         [class.is-invalid]="(confirmPwd.touched && !passwordsMatch())"
       >
       <div *ngIf="confirmPwd.touched && !passwordsMatch()" class="invalid-feedback">
-        Passwords do not match
+        Пароли не совпадают
       </div>
     </div>
 
@@ -112,12 +112,12 @@
       [disabled]="registerForm.invalid || !passwordsMatch() || isLoading"
       class="btn-primary"
     >
-      {{ isLoading ? 'Creating account...' : 'Register' }}
+      {{ isLoading ? 'Creating account...' : 'Создать' }}
     </button>
   </form>
 
   <p class="login-link">
-    Already have an account?
-    <a routerLink="/login">Login here</a>
+    У вас уже есть аккаунт?
+    <a routerLink="/login">Войти</a>
   </p>
 </div>

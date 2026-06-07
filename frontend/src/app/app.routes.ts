@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { RegisterComponent } from './register/register.component';
-import { LoginComponent } from './auth/components/login/login.component';
+import { LoginComponent } from './login/login.component';
 import { HomeComponent } from './auth/components/home/home.component';
 import { TestStartComponent } from './auth/test-start/test-start.component';
 import { ResultComponent } from './auth/result/result.component';

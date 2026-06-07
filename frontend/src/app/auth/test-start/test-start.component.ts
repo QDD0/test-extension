@@ -368,11 +368,36 @@ export class TestStartComponent implements OnInit, OnDestroy {
     this.scheduleAutoSave();
   }
 
-  setTextAnswer(questionId: number, event: any) {
-    const value = event.target.value;
+  clearTextAnswer(questionId: number) {
+    this.userAnswers[questionId] = '';
+
+    const textarea = document.getElementById(`text_${questionId}`) as HTMLTextAreaElement;
+    if (textarea) {
+      textarea.value = '';
+      textarea.classList.remove('has-content');
+    }
+
+    this.saveProgress();
+  }
+
+  setTextAnswer(questionId: number, event: Event) {
+    const target = event.target as HTMLTextAreaElement;
+    const value = target.value;
+
     this.userAnswers[questionId] = value;
-    console.log(`Text answer set: question ${questionId} = "${value}"`);
-    this.scheduleAutoSave();
+
+    if (value && value.trim()) {
+      target.classList.add('has-content');
+    } else {
+      target.classList.remove('has-content');
+    }
+
+    if (this.autoSaveTimeout) {
+      clearTimeout(this.autoSaveTimeout);
+    }
+    this.autoSaveTimeout = setTimeout(() => {
+      this.saveProgress();
+    }, 1000);
   }
 
   scheduleAutoSave() {

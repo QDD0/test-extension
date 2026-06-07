@@ -27,7 +27,7 @@ public class Answer {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_question")
     @JsonIgnore
-    private Question questions;
+    private Question question;
 
     @OneToMany(mappedBy = "mainAnswer", fetch = FetchType.EAGER)
     private List<AttemptAnswer> attemptAnswers;

@@ -80,3 +80,5 @@ CREATE TABLE attempt_answer
     answered_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (id_attempt, id_question, id_answer)
 );
+
+ALTER TABLE question ADD COLUMN correct_text TEXT;

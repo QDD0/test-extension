@@ -29,12 +29,15 @@ public class Question {
     @Column(name = "points")
     private Integer points;
 
+    @Column(name = "correct_text")
+    private String correctText;
+
     @ManyToOne()
     @JoinColumn(name = "id_test")
     @JsonIgnore
     private Test test;
 
-    @OneToMany(mappedBy = "questions", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "question", fetch = FetchType.EAGER)
     private List<Answer> answers;
 
     @OneToMany(mappedBy = "mainQuestion", fetch = FetchType.EAGER)

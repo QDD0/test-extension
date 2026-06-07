@@ -32,13 +32,29 @@
       </div>
 
       <div *ngIf="question.type_question === 'TEXT'" class="text-answer-container">
-        <textarea
-          [id]="'text_' + question.id_question"
-          (input)="setTextAnswer(question.id_question, $event)"
-          placeholder="Введите ваш ответ..."
-          rows="4"
-          class="form-control"
-        >{{ userAnswers[question.id_question] || '' }}</textarea>
+        <div class="text-answer-wrapper">
+    <textarea
+      [id]="'text_' + question.id_question"
+      (input)="setTextAnswer(question.id_question, $event)"
+      placeholder="Введите ваш ответ здесь..."
+      rows="4"
+      class="form-control text-answer-input"
+      [class.has-content]="userAnswers[question.id_question]"
+    >{{ userAnswers[question.id_question] || '' }}</textarea>
+
+          <div class="text-answer-footer" *ngIf="userAnswers[question.id_question]">
+      <span class="char-counter">
+        {{ userAnswers[question.id_question].length }} символов
+      </span>
+            <button
+              type="button"
+              class="clear-text-btn"
+              (click)="clearTextAnswer(question.id_question)"
+              title="Очистить ответ">
+              ✕
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

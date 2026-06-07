@@ -351,13 +351,13 @@ public class TestAttemptController {
                             isCorrect = userIds.containsAll(correctIds) && correctIds.containsAll(userIds);
 
                         } else if ("TEXT".equals(question.getType_question().name())) {
-
                             String userText = userAnswers.get(0).getText_answer();
+
                             String correctText = correctAnswers.isEmpty() ? null : correctAnswers.get(0).getAnswer_text();
 
                             isCorrect = userText != null
                                     && correctText != null
-                                    && userText.equalsIgnoreCase(correctText);
+                                    && userText.trim().equalsIgnoreCase(correctText.trim());
                         }
 
                     } catch (Exception e) {

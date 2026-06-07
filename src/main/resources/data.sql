@@ -2,13 +2,13 @@
 INSERT INTO test (title, description, duration_minutes, created_by, created_at)
 VALUES ('Английский язык - Уровень Intermediate',
         'Тест на знание английского языка среднего уровня (B1-B2). Включает грамматику, лексику и понимание текста.',
-        25, 1, NOW()),
-       ('Основы SQL', 'Тест на знание базовых запросов SQL, JOIN-ов, агрегатных функций и нормализации баз данных.', 20,
+        10, 1, NOW()),
+       ('Основы SQL', 'Тест на знание базовых запросов SQL, JOIN-ов, агрегатных функций и нормализации баз данных.', 10,
         1, NOW()),
-       ('Java Core', 'Проверка знаний основ Java: ООП, коллекции, исключения, многопоточность.', 25, 1, NOW()),
+       ('Java Core', 'Проверка знаний основ Java: ООП, коллекции, исключения, многопоточность.', 10, 1, NOW()),
        ('Математика и логика', 'Тест на математические способности и логическое мышление. Включает задачи и примеры.',
-        15, 1, NOW()),
-       ('История искусств', 'Тест по истории мирового искусства: художники, стили, известные произведения.', 20, 1,
+        10, 1, NOW()),
+       ('История искусств', 'Тест по истории мирового искусства: художники, стили, известные произведения.', 10, 1,
         NOW());
 
 -- Вопросы для теста "Английский язык" (id_test = 1)
@@ -616,3 +616,128 @@ VALUES (4, 61, 190, NULL, NOW() - INTERVAL '12 hours' + INTERVAL '3 minutes'),
        (4, 70, 215, NULL, NOW() - INTERVAL '12 hours' + INTERVAL '9 minutes'),
        (4, 73, 226, NULL, NOW() - INTERVAL '12 hours' + INTERVAL '10 minutes'),
        (4, 76, 236, NULL, NOW() - INTERVAL '12 hours' + INTERVAL '11 minutes');
+
+
+-- Вопрос 3: Переведите на английский: "Я никогда не был в Лондоне"
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (3, 'I have never been to London', true);
+
+-- Вопрос 6: Напишите антоним к слову "generous"
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (6, 'stingy', true);
+
+-- Вопрос 9: Составьте предложение в Present Perfect: (I / finish / homework)
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (9, 'I have finished my homework', true);
+
+-- Вопрос 12: Напишите форму множественного числа слова "child"
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (12, 'children', true);
+
+-- Вопрос 15: Переведите: "Она выглядит уставшей"
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (15, 'She looks tired', true);
+
+-- Вопрос 18: Напишите три формы глагола "go"
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (18, 'go - went - gone', true);
+
+-- Для теста "Основы SQL" (id_test = 2)
+-- Вопрос 23: Напишите SQL-запрос для выборки всех пользователей старше 18 лет из таблицы "users"
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (23, 'SELECT * FROM users WHERE age > 18', true);
+
+-- Вопрос 26: Напишите запрос для подсчета количества записей в таблице "orders"
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (26, 'SELECT COUNT(*) FROM orders', true);
+
+-- Вопрос 29: Напишите запрос для добавления нового столбца "phone" в таблицу "clients"
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (29, 'ALTER TABLE clients ADD COLUMN phone VARCHAR(20)', true);
+
+-- Вопрос 32: Напишите запрос для обновления email пользователя с id=5
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (32, 'UPDATE users SET email = ''newemail@example.com'' WHERE id = 5', true);
+
+-- Вопрос 35: Напишите запрос для удаления всех записей из таблицы "logs", которые старше 2023 года
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (35, 'DELETE FROM logs WHERE created_at < ''2023-01-01''', true);
+
+-- Вопрос 38: Напишите запрос для создания индекса на поле "email" таблицы "users"
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (38, 'CREATE INDEX idx_users_email ON users(email)', true);
+
+-- Для теста "Java Core" (id_test = 3)
+-- Вопрос 43: Напишите сигнатуру метода main в Java
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (43, 'public static void main(String[] args)', true);
+
+-- Вопрос 47: Напишите код создания ArrayList и добавления в него 3 элементов
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (47, 'ArrayList<String> list = new ArrayList<>(); list.add("A"); list.add("B"); list.add("C");', true);
+
+-- Вопрос 50: Напишите конструктор класса Person с полями name и age
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (50, 'public Person(String name, int age) { this.name = name; this.age = age; }', true);
+
+-- Вопрос 53: Напишите код try-catch-finally для обработки исключения
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (53, 'try { } catch (Exception e) { } finally { }', true);
+
+-- Вопрос 56: Напишите код для создания HashMap и добавления пары ключ-значение
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (56, 'HashMap<String, Integer> map = new HashMap<>(); map.put("key", 1);', true);
+
+-- Вопрос 59: Напишите код создания и запуска потока через Runnable
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (59, 'Runnable r = () -> {}; new Thread(r).start();', true);
+
+-- Для теста "Математика и логика" (id_test = 4)
+-- Вопрос 63: Решите уравнение: 2x + 5 = 15
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (63, '5', true);
+
+-- Вопрос 66: Вычислите: 25% от 200
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (66, '50', true);
+
+-- Вопрос 69: Найдите следующее число в последовательности: 2, 4, 8, 16, ...
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (69, '32', true);
+
+-- Вопрос 72: Вычислите площадь прямоугольника со сторонами 5 и 8 см
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (72, '40', true);
+
+-- Вопрос 75: Решите: (8 + 2) × 3
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (75, '30', true);
+
+-- Вопрос 78: Вычислите среднее арифметическое: 5, 7, 9, 11
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (78, '8', true);
+
+-- Для теста "История искусств" (id_test = 5)
+-- Вопрос 83: В каком стиле рисовал Ван Гог?
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (83, 'постимпрессионизм', true);
+
+-- Вопрос 86: Назовите автора скульптуры "Давид"
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (86, 'Микеланджело', true);
+
+-- Вопрос 89: Кто написал "Черный квадрат"?
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (89, 'Казимир Малевич', true);
+
+-- Вопрос 92: Где родился Микеланджело?
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (92, 'Капрезе', true);
+
+-- Вопрос 95: Кто создал скульптуру "Мыслитель"?
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (95, 'Огюст Роден', true);
+
+-- Вопрос 98: Назовите самого известного художника-сюрреалиста
+INSERT INTO answer (id_question, answer_text, is_correct)
+VALUES (98, 'Сальвадор Дали', true);

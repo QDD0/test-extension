@@ -1,15 +1,15 @@
 import { Component, OnInit } from '@angular/core';
-import { NgFor, NgIf, DatePipe } from '@angular/common';
+import {NgFor, NgIf, DatePipe, NgStyle} from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TestService } from '../services/test.service';
-import { Router } from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 
 @Component({
   selector: 'app-admin-panel',
   standalone: true,
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css'],
-  imports: [NgFor, NgIf, DatePipe, FormsModule]
+  imports: [NgFor, NgIf, DatePipe, FormsModule, RouterLink, NgStyle]
 })
 export class AdminPanelComponent implements OnInit {
 
@@ -45,6 +45,18 @@ export class AdminPanelComponent implements OnInit {
     warningCount: 0,
     frequentType: '',
     frequentCount: 0
+  };
+
+  cheatingProbability: {
+    level: string;
+    percentage: number;
+    text: string;
+    color: string;
+  } = {
+    level: '',
+    percentage: 0,
+    text: '',
+    color: ''
   };
 
   constructor(
@@ -222,6 +234,7 @@ export class AdminPanelComponent implements OnInit {
     this.resetViolationsAnalysis();
 
     if (!violations || violations.length === 0) {
+      this.calculateCheatingProbability();
       return;
     }
 
@@ -268,6 +281,79 @@ export class AdminPanelComponent implements OnInit {
 
     this.violationsAnalysis.frequentType = frequentType;
     this.violationsAnalysis.frequentCount = maxCount;
+
+    this.calculateCheatingProbability();
+  }
+
+  calculateCheatingProbability(): void {
+    const total = this.violationsAnalysis.total;
+    const critical = this.violationsAnalysis.criticalCount;
+    const warnings = this.violationsAnalysis.warningCount;
+
+    if (total === 0) {
+      this.cheatingProbability = {
+        level: 'none',
+        percentage: 0,
+        text: 'Признаки списывания не обнаружены',
+        color: '#10b981'
+      };
+      return;
+    }
+
+    let probability = 0;
+
+    const baseScore = total * 3;
+
+    const criticalScore = critical * 15;
+
+    const warningScore = warnings * 8;
+
+    probability = baseScore + criticalScore + warningScore;
+
+    if (probability > 100) {
+      probability = 100;
+    } else if (probability > 80) {
+      probability = 80 + (probability - 80) * 0.5;
+    }
+
+    if (total > 0 && probability < 5) {
+      probability = 5;
+    }
+
+    probability = Math.round(probability);
+
+    let level = '';
+    let text = '';
+    let color = '';
+
+    if (probability <= 15) {
+      level = 'low';
+      text = 'Низкая вероятность списывания';
+      color = '#10b981';
+    } else if (probability <= 30) {
+      level = 'medium';
+      text = 'Средняя вероятность списывания';
+      color = '#f59e0b';
+    } else if (probability <= 60) {
+      level = 'high';
+      text = 'Высокая вероятность списывания';
+      color = '#f97316';
+    } else if (probability <= 85) {
+      level = 'very-high';
+      text = 'Очень высокая вероятность списывания';
+      color = '#ef4444';
+    } else {
+      level = 'critical';
+      text = 'Критическая! Явное списывание';
+      color = '#dc2626';
+    }
+
+    this.cheatingProbability = {
+      level,
+      percentage: probability,
+      text,
+      color
+    };
   }
 
   resetViolationsAnalysis(): void {
@@ -278,6 +364,13 @@ export class AdminPanelComponent implements OnInit {
       warningCount: 0,
       frequentType: '',
       frequentCount: 0
+    };
+
+    this.cheatingProbability = {
+      level: '',
+      percentage: 0,
+      text: '',
+      color: ''
     };
   }
 

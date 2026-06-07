@@ -87,3 +87,8 @@ export interface ActivityEvent {
   event_time: Date;
   event_data: any;
 }
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}

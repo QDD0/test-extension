@@ -1,4 +1,4 @@
-package org.example.testextension.dto;
+package org.example.testextension.repositories;
 
 import org.example.testextension.enums.TypeStatus;
 import java.time.LocalDateTime;

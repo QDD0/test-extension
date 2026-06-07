@@ -49,6 +49,10 @@
                   (click)="deleteUser(user, $event)">
             Удалить
           </button>
+
+          <p class="forgot-password-link">
+            <a routerLink="/forgot-password">Забыли пароль?</a>
+          </p>
         </div>
       </div>
 
@@ -126,9 +130,45 @@
             </div>
 
             <div class="analysis-body">
-              <div class="analysis-total">
-                Всего нарушений:
-                <strong>{{ violationsAnalysis.total }}</strong>
+              <div class="analysis-header-row">
+                <div class="analysis-total">
+                  Всего нарушений:
+                  <strong>{{ violationsAnalysis.total }}</strong>
+                </div>
+
+                <div class="cheating-probability"
+                     *ngIf="cheatingProbability.level"
+                     [ngStyle]="{'--prob-color': cheatingProbability.color}">
+
+                  <div class="probability-header">
+        <span class="probability-icon">
+          {{
+            cheatingProbability.level === 'critical' ? '⚠' :
+              cheatingProbability.level === 'high' ? '⚠' :
+                cheatingProbability.level === 'medium' ? '⚡' : '✓'
+          }}
+        </span>
+                    <span class="probability-label">Вероятность списывания:</span>
+                  </div>
+
+                  <div class="probability-bar-container">
+                    <div class="probability-bar"
+                         [style.width.%]="cheatingProbability.percentage"
+                         [style.background]="cheatingProbability.color">
+                    </div>
+                  </div>
+
+                  <div class="probability-details">
+        <span class="probability-percentage"
+              [style.color]="cheatingProbability.color">
+          {{ cheatingProbability.percentage }}%
+        </span>
+                    <span class="probability-text"
+                          [style.color]="cheatingProbability.color">
+          {{ cheatingProbability.text }}
+        </span>
+                  </div>
+                </div>
               </div>
 
               <div *ngIf="violationsAnalysis.frequentType"
@@ -137,7 +177,6 @@
                 <strong>
                   {{ getViolationText(violationsAnalysis.frequentType) }}
                 </strong>
-
                 ({{ violationsAnalysis.frequentCount }}
                 {{ getViolationCountText(violationsAnalysis.frequentCount) }})
               </div>
@@ -161,7 +200,6 @@
                 <div class="analysis-detail-header">
                   Детализация:
                 </div>
-
                 <div *ngFor="let type of getViolationTypes()"
                      class="analysis-detail-item">
                   {{ getViolationText(type) }}:

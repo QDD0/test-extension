@@ -1,6 +1,6 @@
 package org.example.testextension.controllers;
 
-import org.example.testextension.dto.TestAttemptProjection;
+import org.example.testextension.repositories.TestAttemptProjection;
 import org.example.testextension.models.*;
 import org.example.testextension.repositories.*;
 import org.springframework.http.ResponseEntity;

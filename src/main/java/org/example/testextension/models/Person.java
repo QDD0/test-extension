@@ -50,4 +50,10 @@ public class Person {
 
     @OneToMany(mappedBy = "personAttempt", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TestAttempt> attempts;
+
+    @Column(name = "reset_token")
+    private String resetToken;
+
+    @Column(name = "reset_token_expire")
+    private LocalDateTime resetTokenExpire;
 }

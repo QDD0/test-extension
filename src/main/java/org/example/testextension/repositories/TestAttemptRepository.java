@@ -1,6 +1,5 @@
 package org.example.testextension.repositories;
 
-import org.example.testextension.dto.TestAttemptProjection;
 import org.example.testextension.enums.TypeStatus;
 import org.example.testextension.models.TestAttempt;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import {Observable, tap} from 'rxjs';
-import { LoginRequest, RegisterRequest, AuthResponse } from '../models/auth.model';
+import { Observable, tap } from 'rxjs';
+import { LoginRequest, RegisterRequest, AuthResponse, ResetPasswordRequest } from '../models/auth.model';
 
 @Injectable({
   providedIn: 'root'
@@ -20,5 +20,19 @@ export class AuthService {
 
   register(userData: RegisterRequest): Observable<any> {
     return this.http.post(`${this.apiUrl}/register`, userData);
+  }
+
+  requestReset(email: string): Observable<{token: string}> {
+    return this.http.post<{token: string}>(
+      `${this.apiUrl}/request-reset`,
+      { email }
+    );
+  }
+
+  resetPassword(data: ResetPasswordRequest): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/reset-password`,
+      data
+    );
   }
 }
